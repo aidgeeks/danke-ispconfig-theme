@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang='en' data-theme='light'>
+<head>
+  <meta charset='utf-8' />
+
+  <!-- brand: the generated pieces templates/brand_*.htm (see main.tpl.htm) -->
+  <title><tmpl_include file="brand_name.htm"></title>
+  <meta name='application-name' content='<tmpl_include file="brand_name.htm">'>
+
+  <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=yes'>
+  <meta name='description' lang='en' content='' />
+  <meta name='keywords' lang='en' content='' />
+  <meta name='robots' content='noindex, nofollow' />
+  <meta name='color-scheme' content='light dark'>
+
+  <!-- theme boot: sets data-theme (light/dark) before the first paint — must stay first and synchronous -->
+  <script src='../themes/<tmpl_var name='current_theme'>/assets/javascripts/danke-early.js?ver=<tmpl_include file="asset_ver.htm">'></script>
+
+  <tmpl_include file="brand_head.htm">
+
+  <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/stylesheets/bootstrap.min.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/stylesheets/fonts.min.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/stylesheets/ispconfig.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/stylesheets/bootstrap-datetimepicker.min.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/stylesheets/select2.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/stylesheets/select2-bootstrap.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/stylesheets/bootstrap-icons.min.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/stylesheets/danke/fonts.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/stylesheets/danke/palette.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/brand/accent.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/stylesheets/danke/tokens.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/stylesheets/danke/danke.css?ver=<tmpl_include file="asset_ver.htm">' />
+</head>
+
+<body class='dk dk-login'>
+  <span id='dk-lang-probe' hidden data-a='<tmpl_var name="login_txt">' data-b='<tmpl_var name="username_txt">' data-c='<tmpl_var name="pw_lost_txt">'></span>
+
+  <div class='dk-login-shell'>
+    <div class='dk-login-topbar'>
+      <button type='button' class='dk-icon-btn dk-theme-toggle' data-dk-theme-toggle aria-pressed='false' aria-label='Dark mode' data-dk-i18n-attr='aria-label:theme.toggle;title:theme.toggle' title='Dark mode'>
+        <i class='bi bi-moon-stars dk-theme-icon-dark' aria-hidden='true'></i>
+        <i class='bi bi-sun dk-theme-icon-light' aria-hidden='true'></i>
+      </button>
+    </div>
+
+    <main class='dk-login-main'>
+      <div class='dk-login-card'>
+        <div class='dk-login-brand'>
+          <tmpl_include file="brand_logo_login.htm">
+        </div>
+        <h1 class='dk-login-title' data-dk-i18n='login.title'>Sign in to your control panel</h1>
+        <p class='dk-login-sub' data-dk-i18n='login.sub'>Manage your websites, email, domains and databases.</p>
+        <div class='dk-login-body'>
+          <tmpl_dyninclude name="content_tpl">
+        </div>
+        <tmpl_if name="custom_login"><div class='dk-login-custom'><small><tmpl_var name="custom_login"></small></div></tmpl_if>
+      </div>
+      <!-- line below the card: "Secure connection · <brand> · powered by ISPConfig". The parts never break inside; where the
+           line is too narrow it wraps between them (danke.css §21; danke.js drops the "·" at a line end). The link and
+           the name are core's own (app_link / app_title, as in the panel footer of main.tpl.htm). -->
+      <p class='dk-login-foot' data-dk-seps>
+        <span class='dk-foot-part dk-login-secure'><i class='bi bi-shield-check' aria-hidden='true'></i> <span data-dk-i18n='login.secure'>Secure connection</span></span><tmpl_include file="brand_loginfoot.htm">
+        <span class='dk-foot-sep' aria-hidden='true'>·</span>
+        <span class='dk-foot-part dk-powered'><span data-dk-i18n='powered'>powered by</span> <tmpl_if name="app_link"><a href="<tmpl_var name="app_link">" target="_blank" rel="noopener noreferrer"><tmpl_if name="app_title"><tmpl_var name="app_title"><tmpl_else>ISPConfig</tmpl_if></a><tmpl_else><tmpl_if name="app_title"><tmpl_var name="app_title"><tmpl_else>ISPConfig</tmpl_if></tmpl_if></span>
+      </p>
+      <p class='dk-login-credit'>
+        <tmpl_include file="brand_credit_login.htm">
+      </p>
+    </main>
+  </div>
+
+  <script type="text/javascript" src="../js/jquery.min.js"></script>
+  <script src='../themes/default/assets/javascripts/bootstrap.min.js'></script>
+  <script src='../themes/default/assets/javascripts/bootstrap-datetimepicker.min.js'></script>
+  <script src='../themes/default/assets/javascripts/ispconfig.js'></script>
+  <script src='../themes/default/assets/javascripts/modernizr.custom.min.js'></script>
+  <script src='../themes/default/assets/javascripts/responsive.min.js'></script>
+  <script src='../themes/<tmpl_var name='current_theme'>/assets/javascripts/danke.js?ver=<tmpl_include file="asset_ver.htm">'></script>
+  <script src='../js/select2/select2.min.js'></script>
+  <script src='../js/scrigo.js.php'></script>
+  <script type="text/javascript" src="../js/jquery.ispconfigsearch.js"></script>
+  <script type="text/javascript" src="../js/jquery.tipsy.js"></script>
+  <tmpl_loop name="js_d_includes">
+	<script type="text/javascript" src="../js/js.d/<tmpl_var name='file'>"></script>
+  </tmpl_loop>
+</body>
+
+</html>

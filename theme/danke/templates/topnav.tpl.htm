@@ -1,0 +1,14 @@
+	<!-- main navigation (module list = icon rail) — rendered by nav.php?nav=top into #topnav-container.
+	     Kept for core JS: id main-navigation, <a> items, class "active", data-capp, data-icon-class. -->
+	<nav id='main-navigation' class='dk-modnav' aria-label='Modules' data-dk-i18n-attr='aria-label:nav.modules'>
+	  <ul class='dk-modnav-list'>
+    <tmpl_loop name="nav_top">
+		<li class='dk-modnav-item'>
+		<a href="#" class="dk-modnav-link <tmpl_if name="active">active" aria-current="page"<tmpl_else>" data-capp="<tmpl_var name='module'>"</tmpl_if> data-icon-class="<tmpl_var name='icon'>" data-module="<tmpl_var name='module'>" title="<tmpl_var name='title'>">
+		  <span class="dk-modnav-icon {tmpl_var name='icon'}" aria-hidden="true"></span>
+		  <span class="title"><tmpl_var name="title"></span>
+		</a>
+		</li>
+    </tmpl_loop>
+	  </ul>
+	</nav>

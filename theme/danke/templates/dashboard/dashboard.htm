@@ -1,0 +1,76 @@
+<!-- Danke dashboard. Same variables, alert ids and message_ack script as web/dashboard/templates/dashboard.htm -->
+<div class='page-header dk-dash-header'>
+  <div class='dk-dash-hello'>
+    <p class='dk-eyebrow' data-dk-i18n='dash.eyebrow'>Overview</p>
+    <h1>{tmpl_var name='welcome_user'}</h1>
+  </div>
+</div>
+
+<tmpl_if name='error'>
+	<div id="errormsg" class="alert alert-danger alert-dismissible" role="alert">
+		<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		<tmpl_loop name="error">
+			{tmpl_var name='error_msg'}
+		</tmpl_loop>
+	</div>
+</tmpl_if>
+<tmpl_if name='warning'>
+	<div id="warningmsg" class="alert alert-warning alert-dismissible" role="alert">
+		<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		<tmpl_loop name="warning">
+			{tmpl_var name='warning_msg'}
+		</tmpl_loop>
+	</div>
+</tmpl_if>
+<tmpl_if name='info'>
+	<div id="infomsg" class="alert alert-notification alert-dismissible" role="alert">
+		<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		<tmpl_loop name="info">
+			{tmpl_var name='info_msg'}
+		</tmpl_loop>
+	</div>
+</tmpl_if>
+
+<!-- Row order is CSS (danke.css §20): admin = server status → dashlets (metrics, quota) → news → donation box;
+     client (real limits) = limits → quota tables → news → donation box. danke.js sets .dk-dash--limits and moves
+     ISPConfig's donation dashlet (unchanged, "Hide" keeps working) into the last row.
+     Quick actions live in the Home menu panel only (fix round 6) — no card here. -->
+<div class='dk-dash' data-dk-dash>
+	<!-- server status (users with the Monitor module): filled by danke.js, hidden when empty -->
+	<section class='dk-dash-row dk-dash-row--overview'>
+		<div class='dk-card dk-status' data-dk-status hidden aria-live='polite'></div>
+	</section>
+	<!-- right column dashlets: by default "limits" = the resource tiles -->
+	<section class='dk-dash-row dk-dash-row--primary'>
+	<tmpl_loop name='rightcol'>
+		<div class='dk-dashlet'>{tmpl_var name='content'}</div>
+	</tmpl_loop>
+	</section>
+	<section class='dk-dash-row dk-dash-row--secondary'>
+	<tmpl_loop name='leftcol'>
+		<div class='dk-dashlet'>{tmpl_var name='content'}</div>
+	</tmpl_loop>
+	</section>
+	<!-- always the end of the dashboard: latest news (last but one), then the donation dashlet (last) -->
+	<section class='dk-dash-row dk-dash-row--bottom'>
+		<div class='dk-card dk-news' data-dk-news hidden></div>
+		<div class='dk-dash-donate' data-dk-donate></div>
+	</section>
+</div>
+
+<!-- Closing a message box hides the messages of its state (same script as core's dashboard.htm).
+     ISPConfig >= 3.3.3: message_ack.php checks a CSRF token, dashboard.php sets one per state that has messages.
+     ISPConfig 3.3.1 / 3.3.2: no token exists and message_ack.php takes the plain request — those releases are
+     recognised by `phpsessid`, a variable app::tpl_defaults() sets up to 3.3.2 and no longer in 3.3.3. So the plain
+     request is never sent to a core that would log it as a blocked CSRF attempt. (docs/COMPATIBILITY.md) -->
+<script type = "text/javascript">
+	$('#infomsg').on('closed.bs.alert', function () {
+		<tmpl_if name='_csrf_id_info'>$.get("dashboard/message_ack.php?message_state=info&_csrf_id={tmpl_var name='_csrf_id_info'}&_csrf_key={tmpl_var name='_csrf_key_info'}");<tmpl_else><tmpl_if name='phpsessid'>$.get("dashboard/message_ack.php?message_state=info");</tmpl_if></tmpl_if>
+	});
+	$('#warningmsg').on('closed.bs.alert', function () {
+		<tmpl_if name='_csrf_id_warning'>$.get("dashboard/message_ack.php?message_state=warning&_csrf_id={tmpl_var name='_csrf_id_warning'}&_csrf_key={tmpl_var name='_csrf_key_warning'}");<tmpl_else><tmpl_if name='phpsessid'>$.get("dashboard/message_ack.php?message_state=warning");</tmpl_if></tmpl_if>
+	});
+	$('#errormsg').on('closed.bs.alert', function () {
+		<tmpl_if name='_csrf_id_error'>$.get("dashboard/message_ack.php?message_state=error&_csrf_id={tmpl_var name='_csrf_id_error'}&_csrf_key={tmpl_var name='_csrf_key_error'}");<tmpl_else><tmpl_if name='phpsessid'>$.get("dashboard/message_ack.php?message_state=error");</tmpl_if></tmpl_if>
+	});
+</script>

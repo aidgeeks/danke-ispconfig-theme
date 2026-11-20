@@ -1,0 +1,1870 @@
+/* ==========================================================================
+   Danke — theme for ISPConfig 3.3.x  (theme id: danke)
+   ".dk" is only the internal CSS scope / file prefix, not a brand name.
+   Layered on top of the unchanged vendor CSS (Bootstrap 3.3, ispconfig.css,
+   select2 3.x, datetimepicker). Uses only tokens from tokens.css.
+   Sections:
+     1  Base            9  Tabs              17 Select2 / datepicker
+     2  Shell layout   10  Alerts            18 Global search
+     3  Sidebar        11  Badges            19 Misc ISPConfig widgets
+     4  Top bar        12  Pagination        20 Dashboard
+     5  Content        13  Meters/progress   21 Login
+     6  Cards          14  Dropdown/modal    22 Responsive
+     7  Tables         15  Tooltip/popover   23 Motion / print
+     8  Buttons/forms  16  Panels (collapse) 24 Monitor module
+   ========================================================================== */
+
+/* ---------- 1. Base ---------- */
+html { -webkit-text-size-adjust: 100%; }
+html, body { background: var(--c-bg); }
+body.dk {
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--c-text);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.dk h1, .dk h2, .dk h3, .dk h4, .dk h5, .dk h6 { font-family: var(--font-sans); color: var(--c-text); letter-spacing: -0.01em; }
+.dk h1 { font-size: var(--fs-xl); font-weight: var(--fw-semibold); line-height: var(--lh-tight); margin: 0; }
+.dk h2 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); }
+.dk h3 { font-size: var(--fs-md); font-weight: var(--fw-semibold); }
+.dk h4 { font-size: var(--fs-base); font-weight: var(--fw-semibold); }
+.dk a { color: var(--c-link); text-decoration: none; }
+.dk a:hover { color: var(--c-link-hover); text-decoration: underline; text-underline-offset: 2px; }
+.dk hr { border-top-color: var(--c-border); }
+.dk small, .dk .small { color: var(--c-text-subtle); }
+.dk .text-muted { color: var(--c-text-subtle); }
+.dk .text-danger { color: var(--c-danger); }
+.dk .text-success { color: var(--c-success); }
+.dk .text-warning { color: var(--c-warning); }
+.dk .text-info, .dk .text-primary { color: var(--c-link); }
+.dk ::selection { background: var(--c-primary-soft); color: var(--c-text); }
+.dk legend { color: var(--c-text); border-bottom-color: var(--c-border); font-size: var(--fs-md); font-weight: var(--fw-semibold); }
+.dk em { color: var(--c-danger); font-style: normal; }          /* required-field "*" in module forms */
+
+/* monospace for technical values */
+.dk code, .dk kbd, .dk pre, .dk samp, .dk .dk-mono, .dk textarea.form-control,
+.dk .finediff, #apache_directives, #nginx_directives, #proxy_directives,
+.dk input[name="ip_address"], .dk input[name="ipv6_address"], .dk input[name="data"],
+.dk input[name="document_root"], .dk input[name="dir"], .dk input[name$="_ip"],
+.dk td.dk-mono, .dk .dk-cell-mono {
+  font-family: var(--font-mono);
+  font-size: .96em;                    /* JetBrains Mono has a tall x-height: .96em matches Inter optically */
+  font-feature-settings: "calt" 0;
+}
+/* technical values in lists: same optical size and weight as the body text around them */
+.dk td.dk-mono, .dk .dk-cell-mono, .dk .dk-cell-mono a:not(.btn) { font-weight: var(--fw-medium); letter-spacing: -0.01em; }
+.dk code { color: var(--c-text); background: var(--c-surface-2); border-radius: var(--r-sm); padding: 1px 5px; }
+.dk pre { color: var(--c-text); background: var(--c-surface-2); border: 1px solid var(--c-border); border-radius: var(--r-md); }
+
+/* Focus: always visible for keyboard users */
+.dk :focus { outline: none; }
+.dk :focus-visible,
+.dk .btn:focus-visible,
+.dk a:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--c-focus-ring);
+  border-radius: var(--r-sm);
+}
+/* Bootstrap's own button outline is dropped for mouse focus only. With the keyboard a button keeps the 2px outline
+   above — since r9 the halo (--c-focus-ring) is too soft to be the only focus indicator of a button. */
+.dk .btn:focus:not(:focus-visible), .dk .btn:active:focus:not(:focus-visible), .dk .btn.active:focus:not(:focus-visible) { outline: none; }
+
+.dk-skip {
+  position: absolute; left: var(--sp-3); top: -100px; z-index: 2000;
+  padding: var(--sp-2) var(--sp-4); border-radius: var(--r-md);
+  background: var(--c-primary); color: var(--c-text-on-primary) !important; font-weight: var(--fw-semibold);
+}
+.dk-skip:focus { top: var(--sp-3); }
+
+/* ---------- 2. Shell layout ---------- */
+/* Navigation = icon rail (modules) + module menu panel. --nav-w is what the content has to leave free:
+   rail + panel, or the rail alone when the module has no menu (dashboard) or the user collapsed the panel.
+   The two root attributes are set before the first paint by danke-early.js and kept current by danke.js. */
+:root { --nav-w: calc(var(--layout-rail-w) + var(--layout-panel-w)); }
+:root[data-dk-menu="0"], :root[data-dk-panel="collapsed"] { --nav-w: var(--layout-rail-w); }
+/* --content-x: where the content area starts (0 while the navigation is a drawer) — used to centre the loader */
+:root { --content-x: var(--nav-w); }
+/* The page container is centred, so a vertical scrollbar that comes and goes (long dashboard ↔ short list) moved the
+   content by half its width (7px on a 1920px window: Home 391 / other modules 398). The gutter is now always reserved. */
+html { scrollbar-gutter: stable; }
+@supports not (scrollbar-gutter: stable) { html { overflow-y: scroll; } }
+body.dk.modal-open { padding-right: 0 !important; }   /* Bootstrap adds the scrollbar width again — the gutter is already there */
+.dk-shell { min-height: 100vh; }
+.dk-sidebar {
+  position: fixed; inset: 0 auto 0 0; z-index: 1030;
+  width: var(--nav-w);
+  display: flex; flex-direction: row;
+}
+.dk-main {
+  margin-left: var(--nav-w);
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  min-width: 0;
+}
+#content.dk-content {                         /* ispconfig.css sets width:78% / float on #content */
+  float: none; width: auto;
+  flex: 1 0 auto;
+  padding: var(--sp-6) var(--sp-8) calc(var(--sp-8) + var(--footer-h));   /* room for the pinned footer */
+  /* one page container for every page (dashboard, lists, forms, monitor): max width, centred in the content area */
+  max-width: var(--layout-content-max);
+  width: 100%;
+  margin-inline: auto;
+  outline: none;
+}
+.dk-scrim { display: none; }
+
+/* Footer (fix round 6, U2). From 768px up it is PINNED to the bottom of the content area and stays there while the
+   page scrolls: background + top line span the whole content area (panel/rail edge → right window edge), the text
+   sits inside the same centred container as the page (card edges). #content gets the matching bottom padding
+   (--footer-h), so the last row / pager / Save-Cancel bar always ends above it. Phones (< 768px): not pinned — the
+   footer is the end of the page, stacked and centred (see §22). */
+:root { --footer-h: 40px; }
+.dk-footer {
+  position: fixed; left: var(--content-x); right: 0; bottom: 0; z-index: 1010;
+  height: var(--footer-h);
+  background: var(--c-bg); border-top: 1px solid var(--c-border);
+  font-size: var(--fs-xs); line-height: 1.5; color: var(--c-text-subtle);
+}
+.dk-footer-inner {
+  display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: var(--sp-1) var(--sp-4);
+  height: 100%; width: 100%; max-width: var(--layout-content-max); margin-inline: auto;
+  padding: 0 var(--sp-8);
+  white-space: nowrap; overflow: hidden;
+}
+.dk-footer-brand { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 var(--sp-2); min-width: 0; }
+.dk-footer a { color: var(--c-text-subtle); text-decoration: underline; }
+/* maker credit: small and quiet (footer + below the login card). DK_CONFIG.showCredit = false hides it. */
+.dk-credit { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); line-height: 1.5; color: var(--c-text-subtle); white-space: nowrap; }
+.dk-credit-icon { display: block; width: 16px; height: 16px; flex: 0 0 auto; }
+.dk-credit a, .dk-footer .dk-credit a { color: inherit; text-decoration: none; border-radius: var(--r-sm); }
+.dk-credit a:hover, .dk-footer .dk-credit a:hover,
+.dk-credit a:focus-visible, .dk-footer .dk-credit a:focus-visible { text-decoration: underline; text-underline-offset: 2px; color: var(--c-link); }
+/* product wording ("Danke theme · by AIDGeeks", text only): two links in one sentence — a faint underline tells them apart */
+.dk-credit-product a, .dk-footer .dk-credit-product a { text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 2px; }
+.dk-credit-product a:hover, .dk-footer .dk-credit-product a:hover,
+.dk-credit-product a:focus-visible, .dk-footer .dk-credit-product a:focus-visible { text-decoration-color: currentColor; }
+:root[data-dk-credit="off"] .dk-credit, :root[data-dk-credit="off"] .dk-login-credit { display: none !important; }
+
+/* ---------- 3. Navigation: rail + module menu panel ---------- */
+/* 3a. rail: brand icon, then one icon + short label per module (topnav.tpl.htm). Dark in both modes. */
+.dk-rail {
+  flex: 0 0 var(--layout-rail-w); width: var(--layout-rail-w);
+  display: flex; flex-direction: column;
+  background: var(--c-rail); color: var(--c-rail-text);
+  border-right: 1px solid var(--c-rail-border);
+  overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
+}
+.dk-rail::-webkit-scrollbar { display: none; }
+.dk-rail-head { flex: 0 0 var(--layout-topbar-h); height: var(--layout-topbar-h); display: flex; align-items: center; justify-content: center; }
+.dk-rail-brand { display: flex; align-items: center; justify-content: center; border-radius: var(--r-md); padding: 4px; }
+/* white brand icon (assets/brand/icon-rail.svg) directly on the dark rail — no tile; the full logo is in the panel / top bar */
+.dk-rail-icon { display: block; width: 30px; height: 30px; }
+.dk-rail :focus-visible, .dk-rail a:focus-visible { outline: 2px solid var(--c-rail-focus); outline-offset: -2px; box-shadow: none; }
+
+/* 3b. panel: full logo, module name, the module's menu — one scroll area, one scrollbar */
+.dk-panel {
+  flex: 1 1 auto; min-width: 0; width: var(--layout-panel-w);
+  display: flex; flex-direction: column;
+  background: var(--c-sidebar);
+  border-right: 1px solid var(--c-border);
+}
+.dk-brand {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2);
+  height: var(--layout-topbar-h);
+  padding: 0 var(--sp-3) 0 var(--sp-5);
+  border-bottom: 1px solid var(--c-border);
+  flex: 0 0 auto;
+}
+.dk-brand-link { display: inline-flex; align-items: center; border-radius: var(--r-sm); }
+.dk-brand-link:hover { text-decoration: none; }
+/* brand files live in assets/brand/ (logo.svg, logo-dark.svg, icon.svg); light/dark is switched here, no JS */
+.dk-logo { display: block; height: 44px; width: auto; max-width: 180px; }
+:root[data-theme="dark"] .dk-only-light { display: none !important; }
+:root:not([data-theme="dark"]) .dk-only-dark { display: none !important; }
+/* brand profiles that show the logo of the ISPConfig installation ("logo": "core"): ONE image for both modes. In dark
+   mode it sits on a light plate — ISPConfig's logo, and most custom logos, are drawn for a white page. The rail is
+   dark in both modes, so the icon there always has the plate. */
+.dk-logo-core { object-fit: contain; }
+:root[data-theme="dark"] .dk-logo-core { background: #FFFFFF; border-radius: var(--r-md); padding: 4px 8px; box-sizing: border-box; }
+.dk-rail-icon-core { background: #FFFFFF; border-radius: 8px; padding: 4px; box-sizing: border-box; }
+:root[data-theme="dark"] .dk-icon-core { background: #FFFFFF; border-radius: 6px; padding: 3px; box-sizing: border-box; }
+.dk-topbar-icon { display: none; width: 28px; height: 28px; flex: 0 0 auto; }
+.dk-topbar-logo { display: none; flex: 0 0 auto; margin-right: var(--sp-2); }
+.dk-topbar-logo img { display: block; height: 36px; width: auto; }
+.dk-icon-btn.dk-nav-close { display: none; }
+.dk-panel-title {
+  flex: 0 0 auto; margin: 0; padding: var(--sp-4) var(--sp-5) var(--sp-1);
+  font-size: var(--fs-lg); line-height: 1.3; font-weight: var(--fw-semibold); color: var(--c-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dk-panel-title:empty { display: none; }
+.dk-panel-scroll {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  padding: var(--sp-1) var(--sp-3) var(--sp-4);
+  scrollbar-width: thin; scrollbar-color: var(--c-surface-3) transparent;
+}
+@media (min-width: 1200px) {
+  /* no menu for this module (dashboard) or panel collapsed by the user: rail only, content gets the width */
+  :root[data-dk-menu="0"] .dk-panel, :root[data-dk-panel="collapsed"] .dk-panel { display: none; }
+  :root[data-dk-menu="0"] .dk-topbar-logo, :root[data-dk-panel="collapsed"] .dk-topbar-logo { display: block; }
+  :root[data-dk-menu="0"] .dk-icon-btn.dk-nav-toggle { display: none; }      /* nothing to collapse */
+}
+
+/* module list (topnav.tpl.htm) — neutralise ispconfig.css #main-navigation rules */
+#main-navigation.dk-modnav { margin: 0; display: block; width: auto; padding: var(--sp-1) 0 var(--sp-3); }
+.dk-modnav-list { display: flex; flex-direction: column; }
+.dk-modnav-item:has(> [data-module="help"]) { order: 99; }
+.dk-modnav-list, .dk-subnav, #sidebar ul { list-style: none; margin: 0; padding: 0; }
+#main-navigation .dk-modnav-link {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  height: auto; min-height: 54px;
+  padding: 7px 2px 6px;
+  margin: 2px 6px;
+  border: 0; border-radius: 10px;
+  background: transparent; color: var(--c-rail-text);
+  font-size: 11px; line-height: 1.2; font-weight: var(--fw-medium); letter-spacing: 0;
+  text-align: center; text-decoration: none;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+#main-navigation .dk-modnav-link:hover { background: var(--c-rail-hover); color: var(--c-rail-text-strong); text-decoration: none; }
+#main-navigation .dk-modnav-link.active {
+  background: var(--c-rail-active); color: var(--c-rail-text-strong); font-weight: var(--fw-semibold);
+}
+#main-navigation .title { display: block; max-width: 100%; margin: 0; font-weight: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dk-modnav-icon, .dk-module-icon {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  font-size: 19px !important; line-height: 1;
+  margin: 0 !important; float: none !important;
+  color: inherit;
+}
+.dk-modnav-icon::before, .dk-module-icon::before { vertical-align: 0 !important; }
+
+/* Known ISPConfig modules → Bootstrap Icons glyphs (bundled font). Unknown add-on modules keep their own icon class. */
+[data-module="dashboard"] .dk-modnav-icon::before, [data-module="dashboard"] .dk-module-icon::before,
+[data-module="client"]    .dk-modnav-icon::before, [data-module="client"]    .dk-module-icon::before,
+[data-module="sites"]     .dk-modnav-icon::before, [data-module="sites"]     .dk-module-icon::before,
+[data-module="mail"]      .dk-modnav-icon::before, [data-module="mail"]      .dk-module-icon::before,
+[data-module="mailuser"]  .dk-modnav-icon::before, [data-module="mailuser"]  .dk-module-icon::before,
+[data-module="dns"]       .dk-modnav-icon::before, [data-module="dns"]       .dk-module-icon::before,
+[data-module="vm"]        .dk-modnav-icon::before, [data-module="vm"]        .dk-module-icon::before,
+[data-module="tools"]     .dk-modnav-icon::before, [data-module="tools"]     .dk-module-icon::before,
+[data-module="monitor"]   .dk-modnav-icon::before, [data-module="monitor"]   .dk-module-icon::before,
+[data-module="admin"]     .dk-modnav-icon::before, [data-module="admin"]     .dk-module-icon::before,
+[data-module="help"]      .dk-modnav-icon::before, [data-module="help"]      .dk-module-icon::before,
+[data-module="billing"]   .dk-modnav-icon::before, [data-module="billing"]   .dk-module-icon::before,
+[data-module="domain"]    .dk-modnav-icon::before, [data-module="domain"]    .dk-module-icon::before {
+  font-family: "bootstrap-icons" !important; font-style: normal; font-weight: 400 !important; speak: never;
+}
+[data-module="dashboard"] .dk-modnav-icon::before, [data-module="dashboard"] .dk-module-icon::before { content: "\f3f4"; }
+[data-module="client"]    .dk-modnav-icon::before, [data-module="client"]    .dk-module-icon::before { content: "\f4d0"; }
+[data-module="sites"]     .dk-modnav-icon::before, [data-module="sites"]     .dk-module-icon::before { content: "\f3ef"; }
+[data-module="mail"]      .dk-modnav-icon::before, [data-module="mail"]      .dk-module-icon::before { content: "\f32f"; }
+[data-module="mailuser"]  .dk-modnav-icon::before, [data-module="mailuser"]  .dk-module-icon::before { content: "\f42d"; }
+[data-module="dns"]       .dk-modnav-icon::before, [data-module="dns"]       .dk-module-icon::before { content: "\f2ee"; }
+[data-module="vm"]        .dk-modnav-icon::before, [data-module="vm"]        .dk-module-icon::before { content: "\f685"; }
+[data-module="tools"]     .dk-modnav-icon::before, [data-module="tools"]     .dk-module-icon::before { content: "\f5db"; }
+[data-module="monitor"]   .dk-modnav-icon::before, [data-module="monitor"]   .dk-module-icon::before { content: "\f66b"; }
+[data-module="admin"]     .dk-modnav-icon::before, [data-module="admin"]     .dk-module-icon::before { content: "\f3e5"; }
+[data-module="help"]      .dk-modnav-icon::before, [data-module="help"]      .dk-module-icon::before { content: "\f505"; }
+[data-module="billing"]   .dk-modnav-icon::before, [data-module="billing"]   .dk-module-icon::before { content: "\f50f"; }
+[data-module="domain"]    .dk-modnav-icon::before, [data-module="domain"]    .dk-module-icon::before { content: "\f3ee"; }
+
+/* module menu (sidenav.tpl.htm) — neutralise ispconfig.css #sidebar box */
+#sidebar.dk-subnav-container {
+  float: none; margin: 0; width: auto; min-width: 0; max-width: none;
+  border: 0; border-radius: 0; background: transparent;
+}
+/* group titles are headings, not links (sidenav.tpl.htm) */
+#sidebar .dk-navgroup-title {
+  margin: 14px 0 2px; padding: 0 var(--sp-3);
+  font-size: 11px; line-height: 1.4; font-weight: var(--fw-semibold); letter-spacing: .06em; text-transform: uppercase;
+  color: var(--c-text-subtle); cursor: default;
+}
+#sidebar .dk-navgroup:first-child .dk-navgroup-title { margin-top: var(--sp-2); }
+/* modules with their own menu template (dashboard "latest news": custom_menu.htm) */
+#sidebar header {
+  margin: var(--sp-3) 0 var(--sp-1); padding: 0 var(--sp-3);
+  min-height: 0; line-height: 1.4;
+  background: transparent; border: 0;
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--c-text);
+}
+#sidebar header a { padding: 0; color: inherit; display: inline; }
+#sidebar header a:hover { color: var(--c-link); }
+#sidebar.dk-news-moved { display: none; }               /* shown as a dashboard card instead (danke.js) */
+.dk-home-nav[hidden] { display: none; }                 /* Home panel (danke.js buildHomeNav): Home has a panel like every module */
+.dk-home-nav .dk-navgroup:first-child { margin-top: var(--sp-2); }
+.dk-home-nav ul { list-style: none; margin: 0; padding: 0; }
+.dk-home-nav .dk-navgroup-title {
+  margin: 14px 0 2px; padding: 0 var(--sp-3);
+  font-size: 11px; line-height: 1.4; font-weight: var(--fw-semibold); letter-spacing: .06em; text-transform: uppercase; color: var(--c-text-subtle);
+}
+#sidebar li, .dk-home-nav li { border: 0; padding: 0; font-size: var(--fs-sm); }
+#sidebar li a, .dk-home-nav li a {
+  display: block;
+  padding: 5px var(--sp-3) 5px var(--sp-4);
+  margin: 1px 0;
+  border-radius: var(--r-md);
+  color: var(--c-text-muted);
+  text-decoration: none;
+  position: relative;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+/* one row layout for every item of every module and of the Home panel (fix round 6, U1): icon column + label.
+   The icon element is printed by sidenav.tpl.htm / built by danke.js; the glyph is chosen by danke.js (MENU_ICONS).
+   Until then — and for anything danke.js does not know — a neutral glyph keeps the column, so labels always line up. */
+#sidebar li a > .dk-subnav-inner, .dk-home-nav li a > .dk-subnav-inner, #sidebar li a.dk-subnav-flex { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
+#sidebar li a.dk-subnav-flex { display: flex; }
+.dk-subnav-icon { flex: 0 0 16px; width: 16px; height: 16px; font-size: 14px; line-height: 16px; text-align: center; color: var(--c-accent-text); }
+.dk-subnav-icon::before { display: block; line-height: 16px; }
+.dk-subnav-icon:not([class*=" bi-"])::before { content: "\f28a"; }       /* bi-circle = MENU_ICON_FALLBACK */
+.dk-subnav-text { min-width: 0; overflow-wrap: anywhere; }
+#sidebar li a strong, #sidebar li a .dk-subnav-text, .dk-home-nav li a .dk-subnav-text { font-weight: var(--fw-regular); }
+#sidebar li a:hover, .dk-home-nav li a:hover { background: var(--c-surface-2); color: var(--c-text); text-decoration: none; }
+#sidebar li a.is-active, .dk-home-nav li a.is-active {
+  background: var(--c-primary-soft); color: var(--c-primary-soft-text); font-weight: var(--fw-semibold);
+}
+#sidebar li a.is-active .dk-subnav-icon, .dk-home-nav li a.is-active .dk-subnav-icon { color: var(--c-primary-soft-text); }
+#sidebar li a.is-active::before, .dk-home-nav li a.is-active::before {
+  content: ""; position: absolute; left: 4px; top: 8px; bottom: 8px; width: 3px;
+  border-radius: 2px; background: var(--c-primary);
+}
+#sidebar li a.is-active .dk-subnav-text, #sidebar li a.is-active strong, .dk-home-nav li a.is-active .dk-subnav-text { font-weight: var(--fw-semibold); }
+#sidebar select { width: 100%; }                         /* dashboard/monitor server selectors */
+#select_server a { padding: 0 var(--sp-3); }
+#sidebar li#select_server { padding: 2px var(--sp-3) var(--sp-2); }
+#sidebar li#select_server .select2-container { font-size: var(--fs-sm); }
+/* dashboard "latest news" menu (custom_menu.htm), when it is not moved into the dashboard */
+#sidebar > ul > li > a[target="_blank"] { margin: 0 0 var(--sp-1) !important; padding: 6px var(--sp-3) !important; }
+
+/* ---------- 4. Top bar ---------- */
+.dk-topbar {
+  position: sticky; top: 0; z-index: 1020;
+  display: flex; align-items: center; gap: var(--sp-3);
+  height: var(--layout-topbar-h);
+  padding: 0 var(--sp-6) 0 var(--sp-5);
+  background: var(--c-topbar);
+  border-bottom: 1px solid var(--c-border);
+}
+/* breadcrumb: Module › Group › Item › record › tab. Parts keep their natural width (the search field gives way
+   first); only when they still do not fit (.is-tight, set by danke.js) the middle parts are shortened with an ellipsis. */
+.dk-crumbs { min-width: 0; flex: 1 .01 auto; overflow: hidden; }      /* shrinks only after the search field reached its minimum */
+.dk-crumbs ol { display: flex; align-items: center; min-width: 0; margin: 0; padding: 0; list-style: none; font-size: var(--fs-sm); }
+.dk-crumbs li { display: flex; align-items: center; min-width: 0; flex: 0 0 auto; white-space: nowrap; color: var(--c-text-muted); }
+.dk-crumbs li:last-child { color: var(--c-text); font-weight: var(--fw-semibold); }
+.dk-crumbs li + li::before { content: "\203A"; flex: 0 0 auto; margin: 0 var(--sp-2); color: var(--c-text-subtle); font-weight: var(--fw-regular); }
+.dk-crumbs li > a, .dk-crumbs li > span { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.dk-crumbs li > a { color: inherit; text-decoration: none; border-radius: var(--r-sm); }
+.dk-crumbs li > a:hover { color: var(--c-link); text-decoration: underline; }
+/* "…" stands for the first parts on phones (see §22); not shown on wider screens */
+.dk-crumbs li.dk-crumb-more { display: none; }
+.dk-crumb-more button {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 22px; padding: 0 6px;
+  border: 0; border-radius: var(--r-sm); background: var(--c-surface-2); color: var(--c-text-muted);
+  font: inherit; font-weight: var(--fw-semibold); line-height: 1; letter-spacing: .08em; cursor: pointer;
+}
+.dk-crumb-more button:hover { background: var(--c-surface-3); color: var(--c-text); }
+.dk-crumbs.is-tight li:not(:first-child) { flex-shrink: 1; }
+.dk-crumbs.is-tight li:last-child { flex-shrink: .25; }
+.dk-crumbs.is-tight li:not(:first-child):not(:last-child) > a, .dk-crumbs.is-tight li:not(:first-child):not(:last-child) > span { min-width: 2.5em; }
+
+.dk-icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; padding: 0;
+  border: 1px solid transparent; border-radius: var(--r-md);
+  background: transparent; color: var(--c-text-muted);
+  font-size: 18px; line-height: 1; cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.dk-icon-btn:hover { background: var(--c-surface-2); color: var(--c-text); }
+
+/* search (ispconfig.css floats it) */
+#searchform.dk-search { float: none; margin: 0 0 0 auto; flex: 0 20 300px; min-width: 160px; }      /* gives way to the breadcrumb first */
+#searchform.dk-search > div, #searchform.dk-search > div > div { display: block; padding: 0; position: relative; }
+.dk-search .input-group { width: 100%; }
+#searchform .dk-search-icon {
+  position: absolute; left: 0; top: 0; bottom: 0; z-index: 3; width: 34px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: 0; color: var(--c-text-subtle); padding: 0;
+}
+#searchform .form-control {
+  float: none; height: 34px; padding-left: 36px; border-radius: var(--r-md) !important;
+  background: var(--c-search-bg); border: 1px solid var(--c-search-border); color: var(--c-text);
+}
+#searchform .form-control::placeholder { color: var(--c-text-subtle); opacity: 1; }
+#searchform .form-control:hover { border-color: var(--c-border-strong); }
+/* focus like every other input: surface colour, focus-coloured border + soft halo (--c-focus-ring, see §26 L1) */
+#searchform .form-control:focus { background: var(--c-surface); border-color: var(--c-focus); box-shadow: 0 0 0 3px var(--c-focus-ring); outline: 0; }
+#searchform:focus-within .dk-search-icon { color: var(--c-text-muted); }
+.dk-search .gs-container { width: 100%; }
+
+.dk-topbar-actions { display: flex; align-items: center; gap: var(--sp-1); margin-left: var(--sp-2); }
+.dk-topbar .dk-search ~ .dk-topbar-actions { margin-left: var(--sp-2); }
+.dk-topbar .dk-context + .dk-topbar-actions { margin-left: var(--sp-2); }
+
+/* theme toggle: show the icon of the mode you can switch to */
+.dk-theme-icon-light { display: none; }
+:root[data-theme="dark"] .dk-theme-icon-light { display: inline-block; }
+:root[data-theme="dark"] .dk-theme-icon-dark { display: none; }
+
+/* user menu */
+.dk-user-btn {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  height: 36px; padding: 0 var(--sp-2) 0 4px; margin-left: var(--sp-1);
+  border: 1px solid var(--c-border); border-radius: var(--r-pill);
+  background: var(--c-surface); color: var(--c-text);
+  font-size: var(--fs-sm); font-weight: var(--fw-medium); cursor: pointer;
+}
+.dk-user-btn:hover { background: var(--c-surface-2); }
+.dk-user-btn .bi-chevron-down { font-size: 11px; color: var(--c-text-subtle); }
+.dk-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--c-primary); color: var(--c-text-on-primary);
+  font-size: var(--fs-xs); font-weight: var(--fw-bold); text-transform: uppercase;
+}
+.dk-user-name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dk-menu { min-width: 230px; }
+.dk-menu .dropdown-header { font-size: var(--fs-xs); color: var(--c-text-subtle); padding: var(--sp-2) var(--sp-4); white-space: normal; }
+.dk-menu .dropdown-header strong { display: block; color: var(--c-text); font-size: var(--fs-sm); margin-top: 2px; word-break: break-all; }
+.dk-menu > li > a, .dk-menu-btn {
+  display: flex !important; align-items: center; gap: var(--sp-2);
+  width: 100%; padding: 7px var(--sp-4) !important; text-align: left;
+  font-size: var(--fs-sm); color: var(--c-text) !important; background: transparent; border: 0;
+}
+.dk-menu > li > a:hover, .dk-menu-btn:hover, .dk-menu > li > a:focus, .dk-menu-btn:focus { background: var(--c-surface-2) !important; text-decoration: none; }
+.dk-menu > li > a .bi, .dk-menu-btn .bi { color: var(--c-text-subtle); width: 16px; }
+.dk-menu > li > a[aria-checked="true"]::after { content: "\f26e"; font-family: "bootstrap-icons"; margin-left: auto; color: var(--c-link); }
+#logout-button.dk-menu-btn {                   /* ispconfig.css floats/borders #logout-button */
+  float: none; margin: 0; border: 0; transition: none; color: var(--c-danger) !important;
+}
+#logout-button.dk-menu-btn .bi { color: var(--c-danger); }
+
+/* datalog "pending changes" chip (ispconfig.css: red pulsing circle) */
+.dk .notification {
+  float: none; margin: 0; width: auto; height: 32px; padding: 0 var(--sp-3);
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: var(--r-pill); animation: none;
+  background: var(--c-warning-soft); color: var(--c-warning); border: 1px solid transparent;
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+}
+.dk .notification .bi { animation: dk-spin 2s linear infinite; }
+.dk span.notification_text { margin: 0; color: inherit; display: inline; }
+@keyframes dk-spin { to { transform: rotate(360deg); } }
+
+/* ---------- 5. Content ---------- */
+.dk .page-header {
+  margin: 0 0 var(--sp-5); padding: 0; border: 0;
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--sp-4);
+}
+.dk .page-header h1 { font-size: var(--fs-xl); }
+#pageContent > p, #pageContent .tab-pane > p { color: var(--c-text-muted); max-width: 80ch; }
+#pageContent > p:empty { display: none; }
+.dk .marginTop15 { margin-top: var(--sp-4); }
+.dk p.fieldset-legend { display: none; }      /* hidden in default theme too */
+.dk .formHint, .dk .help-block { color: var(--c-text-subtle); font-size: var(--fs-sm); }
+.dk-eyebrow { margin: 0 0 var(--sp-1); font-size: var(--fs-xs); font-weight: var(--fw-semibold); letter-spacing: .06em; text-transform: uppercase; color: var(--c-accent-text); }
+
+/* DNS "add record" type buttons: compact chips instead of 21 primary buttons */
+.dk .buttons.topbuttons { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: var(--sp-4); }
+.dk .buttons .btn.dns-record-btn {
+  min-height: 30px; padding: 0 10px; margin: 0;
+  background: var(--c-surface); color: var(--c-link); border-color: var(--c-border-strong);
+  font-family: var(--font-mono); font-size: var(--fs-xs); font-weight: var(--fw-semibold); letter-spacing: .02em;
+}
+.dk .btn.dns-record-btn::before { content: "\f64d"; font-family: "bootstrap-icons"; font-size: 11px; }
+.dk .buttons .btn.dns-record-btn:hover, .dk .buttons .btn.dns-record-btn:focus { background: var(--c-primary-soft); color: var(--c-primary-soft-text); border-color: var(--c-primary); }
+
+/* list page "Add new …" button row: buttons directly in #pageContent */
+#pageContent > .btn, #pageContent > button.btn { margin: 0 var(--sp-2) var(--sp-4) 0; }
+
+/* ---------- 6. Cards ---------- */
+.dk-card, .dk .table-wrapper, .dk .content-tab-wrapper, .dk .well {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-xs);
+}
+.dk-card { padding: var(--sp-5); margin-bottom: var(--sp-5); }
+.dk-card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.dk-card-title { margin: 0 !important; font-size: var(--fs-md) !important; font-weight: var(--fw-semibold); }
+.dk .well { color: var(--c-text); }
+
+/* ---------- 7. Tables ---------- */
+.dk .table-wrapper { margin-bottom: var(--sp-5); overflow-x: auto; overflow-y: hidden; }
+.dk .table { margin: 0; color: var(--c-text); background: transparent; font-size: var(--fs-sm); border-collapse: separate; border-spacing: 0; }
+/* Lists size their columns from the content (ispconfig.css: fixed layout = equal columns → "AUTORE…", clipped e-mails).
+   Long values wrap instead of being cut; if a list is still too wide the wrapper scrolls sideways. */
+.dk .table-wrapper > .table, .dk .table-wrapper .table:has(> thead.dark) { table-layout: auto; width: 100%; }
+.dk .table tbody tr td { overflow: visible; text-overflow: clip; overflow-wrap: break-word; }
+.dk .table td.dk-col-nowrap { white-space: nowrap; }     /* e-mail / domain / login columns: never cut or broken (class set by danke.js) */
+.dk .table td.dk-col-wide { min-width: 20ch; }
+.dk .table td:has(.dk-badge) { white-space: nowrap; }    /* badge + DNSSEC key icon stay on one line */
+.dk .table td.dk-cell-mono { min-width: 14ch; overflow-wrap: anywhere; }   /* long DNS data (DKIM keys) may break anywhere */
+.dk .table td.dk-cell-mono.dk-col-nowrap { overflow-wrap: normal; }
+/* fix round 9 (D3) — DNS records NAME + DATA: host names wrap at dots / hyphens (<wbr> set by danke.js), not
+   mid-word; a column is at least as wide as its longest part (a run without separators has a <wbr> every 16
+   characters, so DKIM keys still wrap). break-word = break inside a part only if it cannot fit at all.
+   (Phone cards below 600px may still wrap anywhere.) */
+.dk .table td.dk-cell-mono.dk-cell-host { min-width: 24ch; overflow-wrap: break-word; word-break: normal; hyphens: none; }
+.dk .table td.dk-cell-mono.dk-cell-data { min-width: 20ch; overflow-wrap: break-word; word-break: normal; hyphens: none; }
+@media (max-width: 999.98px) { .dk .table td.dk-cell-mono.dk-cell-host { min-width: 19ch; } }
+.dk-dashlet .table tbody td, .dk-dashlet .table tfoot th { white-space: nowrap; }
+.dk-dashlet .table tbody td:nth-child(2):not(:last-child) { white-space: normal; }   /* mailbox quota: real name may wrap */
+.dk .table caption {
+  padding: var(--sp-4) var(--sp-5); caption-side: top;
+  font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--c-text);
+  border-bottom: 1px solid var(--c-border);
+}
+.dk .table > thead > tr > th, .dk .table > thead > tr > td,
+.dk .table > tbody > tr > td, .dk .table > tbody > tr > th,
+.dk .table > tfoot > tr > td, .dk .table > tfoot > tr > th {
+  padding: 10px var(--sp-3); vertical-align: middle; border-top: 1px solid var(--c-border); line-height: 1.4;
+}
+.dk .table > thead > tr > th:first-child, .dk .table > tbody > tr > td:first-child, .dk .table > tfoot > tr > td:first-child, .dk .table > tfoot > tr > th:first-child { padding-left: var(--sp-5); }
+.dk .table > thead > tr > th:last-child, .dk .table > tbody > tr > td:last-child, .dk .table > tfoot > tr > td:last-child, .dk .table > tfoot > tr > th:last-child { padding-right: var(--sp-5); }
+.dk .table > thead:first-child > tr:first-child > th, .dk .table > caption + thead > tr:first-child > th { border-top: 0; }
+.dk .table > thead > tr > th { border-bottom: 0; }
+
+/* header + filter row (thead.dark) */
+.dk thead.dark, .dk thead.dark tr:nth-child(2) { background: var(--c-surface-2); }
+.dk thead.dark th {
+  height: auto; line-height: 1.3;
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold); letter-spacing: .03em; text-transform: uppercase;
+  color: var(--c-text-muted); background: var(--c-surface-2);
+  /* never "…": a long header wraps between words onto a second line, words are not broken */
+  white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: normal; word-break: normal; hyphens: none;
+  vertical-align: bottom;
+}
+/* "as narrow as the content" (1%) only works with table-layout:auto → only for list tables inside a .table-wrapper.
+   (Fix round 6, U6: unscoped, these two rules hit the Monitor data tables, which are NOT in a wrapper and therefore
+   still had ispconfig.css' table-layout:fixed → Type/Size/Used/… got 1% = one letter per line.) */
+.dk thead.dark th.tiny-col { overflow: visible; text-overflow: clip; }
+.dk .table-wrapper thead.dark th.tiny-col { width: 1%; }
+.dk .table-wrapper thead.dark th.small-col { width: 1%; white-space: nowrap; }
+.dk thead.dark th:empty, .dk thead.dark th:has(> :only-child:empty) { padding-top: 6px; padding-bottom: 6px; }
+.dk thead.dark tr:nth-child(2) td { padding-top: 0; padding-bottom: 10px; border-top: 0; background: var(--c-surface-2); }
+.dk thead.dark td .form-control, .dk thead.dark td select { height: var(--control-h-sm); padding: 4px 8px; font-size: var(--fs-sm); min-width: 56px; }
+.dk thead.dark td input.form-control { min-width: 72px; }
+/* sortable columns: the sort icon has its own reserved space on the right, text never runs under it */
+.dk thead.dark th[data-column] { cursor: pointer; padding-right: 30px; user-select: none; }
+.dk thead.dark th[data-column]:last-child { padding-right: calc(var(--sp-5) + 18px); }
+.dk thead.dark th[data-column]:hover { color: var(--c-text); }
+.dk thead.dark th[data-column]:before {
+  content: "\f127"; font-family: "bootstrap-icons"; font-size: 11px; color: var(--c-text-subtle);
+  position: absolute; right: 10px; top: auto; bottom: 12px; transform: none; line-height: 1; opacity: .7;
+  width: 12px; text-align: center; letter-spacing: 0;
+}
+.dk thead.dark th[data-column][data-ordered] { background: var(--c-surface-2); color: var(--c-link); }
+.dk thead.dark th[data-column][data-ordered]:before { content: "\f128"; color: var(--c-link); opacity: 1; }      /* sort-down: asc */
+.dk thead.dark th[data-column][data-ordered="desc"]:before { content: "\f127"; transform: rotate(180deg); }
+.dk thead.dark th[data-sortable="false"]:before { content: none; }
+
+/* body rows */
+.dk .table tbody tr { border: 0; background: transparent; transition: background var(--dur-fast) var(--ease); }
+/* zebra + hover (all list tables, Monitor tables, dashboard / client quota tables). The colour is on the <tr>;
+   status rows (tr.danger …) colour their <td>s and therefore keep their own colour, badges keep their own fill. */
+.dk .table tbody tr:nth-child(odd) { background: transparent; }
+.dk .table tbody tr:nth-child(even) { background: var(--c-row-alt); }
+.dk .table-hover > tbody > tr:hover, .dk .table tbody tr:hover { background: var(--c-row-hover); }
+.dk .table tbody tr td a:not(.btn) { color: var(--c-text); font-weight: var(--fw-medium); }
+.dk .table tbody tr td a:not(.btn):hover { color: var(--c-link); }
+.dk .table tbody tr td:first-child a:not(.btn) { color: var(--c-link); }
+.dk .table tbody tr:hover td:first-child a:not(.btn), .dk .table tbody tr:hover td a:not(.btn):hover { color: var(--c-link-hover); }   /* AA on the hover colour */
+.dk .table > tbody > tr.danger > td { background: var(--c-danger-soft); }
+.dk .table > tbody > tr.warning > td { background: var(--c-warning-soft); }
+.dk .table > tbody > tr.success > td { background: var(--c-success-soft); }
+.dk .table > tbody > tr.info > td, .dk .table > tbody > tr.active > td { background: var(--c-info-soft); }
+.dk .table td.text-right, .dk .table th.text-right { white-space: nowrap; }
+.dk .table td .btn + .btn, .dk .table td .btn + a.btn, .dk .table td a.btn + a.btn { margin-left: 2px; }
+
+/* empty state */
+.dk .table tbody tr.tbl_row_noresults td {
+  padding: var(--sp-10) var(--sp-5) !important; text-align: center; color: var(--c-text-subtle); font-size: var(--fs-base);
+  background: var(--c-surface);
+}
+.dk .table tbody tr.tbl_row_noresults td::before {
+  content: "\f42d"; font-family: "bootstrap-icons"; display: block; margin: 0 auto var(--sp-2);
+  font-size: 30px; line-height: 1; color: var(--c-text-subtle); opacity: .7;
+}
+.dk .table tbody tr.tbl_row_noresults, .dk .table tbody tr.tbl_row_noresults:hover { background: transparent; }
+
+/* footer (paging) */
+.dk .table > tfoot > tr > td, .dk .table > tfoot > tr > th { background: var(--c-surface); font-weight: var(--fw-semibold); }
+.dk .table > tfoot > tr > td:has(.pagination) { padding-top: var(--sp-2); padding-bottom: var(--sp-2); }
+.dk .tfooter { border-top-color: var(--c-border); }
+
+/* ---------- 8. Buttons & forms ---------- */
+.dk .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: var(--control-h); padding: 0 var(--sp-4);
+  font-family: var(--font-sans); font-size: var(--fs-sm); font-weight: var(--fw-semibold); line-height: 1.2;
+  border-radius: var(--r-md); border: 1px solid transparent;
+  box-shadow: none; text-shadow: none; background-image: none;
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  white-space: nowrap;
+}
+.dk .btn:hover { text-decoration: none; }
+.dk .btn-sm, .dk .btn-group-sm > .btn { min-height: var(--control-h-sm); padding: 0 var(--sp-3); font-size: var(--fs-xs); }
+.dk .btn-xs { min-height: 24px; padding: 0 var(--sp-2); font-size: var(--fs-xs); border-radius: var(--r-sm); }
+.dk .btn-lg { min-height: 44px; padding: 0 var(--sp-6); font-size: var(--fs-base); }
+.dk .btn.disabled, .dk .btn[disabled], .dk fieldset[disabled] .btn { opacity: .5; }
+
+/* secondary (btn-default / formbutton-default) */
+.dk .btn-default, .dk .formbutton-default {
+  color: var(--c-text); background: var(--c-surface); border-color: var(--c-border-strong);
+}
+.dk .btn-default:hover, .dk .btn-default:focus, .dk .formbutton-default:hover, .dk .formbutton-default:focus,
+.dk .btn-default.active, .dk .btn-default:active, .dk .open > .dropdown-toggle.btn-default {
+  color: var(--c-text); background: var(--c-surface-2); border-color: var(--c-border-strong);
+}
+.dk .formbutton-default { padding: 0 var(--sp-4); border-bottom-width: 1px; font-size: var(--fs-sm); }
+
+/* primary (btn-primary / formbutton-success = Save / Add new) */
+.dk .btn-primary, .dk .btn.formbutton-success, .dk .btn-success {
+  color: var(--c-text-on-primary); background: var(--c-primary); border-color: var(--c-primary);
+  padding: 0 var(--sp-5);
+}
+.dk .btn-primary:hover, .dk .btn-primary:focus, .dk .btn.formbutton-success:hover, .dk .btn.formbutton-success:focus,
+.dk .btn-success:hover, .dk .btn-success:focus {
+  color: var(--c-text-on-primary); background: var(--c-primary-hover); border-color: var(--c-primary-hover);
+}
+.dk .btn-primary:active, .dk .btn.formbutton-success:active { background: var(--c-primary-active); border-color: var(--c-primary-active); }
+
+/* danger */
+.dk .btn-danger, .dk .btn.formbutton-danger:not(.formbutton-narrow) {
+  color: #FFFFFF; background: var(--c-danger-solid); border-color: var(--c-danger-solid); padding: 0 var(--sp-5);
+}
+.dk .btn-danger:hover, .dk .btn-danger:focus, .dk .btn.formbutton-danger:not(.formbutton-narrow):hover { color: #FFFFFF; background: var(--c-danger-hover); border-color: var(--c-danger-hover); }
+:root[data-theme="dark"] .dk .btn-danger:hover, :root[data-theme="dark"] .dk .btn.formbutton-danger:not(.formbutton-narrow):hover { background: #962018; border-color: #962018; }
+
+.dk .btn-warning { color: var(--c-warning); background: var(--c-warning-soft); border-color: transparent; }
+.dk .btn-info { color: var(--c-info); background: var(--c-info-soft); border-color: transparent; }
+.dk .btn-link { color: var(--c-link); background: transparent; border-color: transparent; }
+
+/* narrow icon buttons in lists (edit/delete/link) */
+.dk .btn.formbutton-narrow, .dk .btn.formbutton-narrower {
+  min-height: 30px; width: 30px; min-width: 30px; padding: 0; margin: 0;
+  border-radius: var(--r-md); border-color: transparent; background: transparent; color: var(--c-text-muted);
+  font-size: 15px;
+}
+.dk .btn.formbutton-narrow:hover, .dk .btn.formbutton-narrower:hover { background: var(--c-surface-2); color: var(--c-text); border-color: var(--c-border); }
+.dk .btn.formbutton-narrow.formbutton-danger:hover { background: var(--c-danger-soft); color: var(--c-danger); border-color: transparent; }
+/* core also marks a few TEXT buttons "narrow" (Monitor → Data Log History "Undo action", System → extension
+   install / update): no icon inside → a normal small button instead of a 30px box that cuts the text (fix round 6) */
+.dk .btn.formbutton-narrow:not(:has(*)):not(:empty) { width: auto; min-width: 30px; padding: 0 var(--sp-3); border-color: var(--c-border-strong); background: var(--c-surface); color: var(--c-text); font-size: var(--fs-sm); white-space: nowrap; }
+.dk .btn.formbutton-narrow.formbutton-danger:not(:has(*)):not(:empty) { color: var(--c-danger); border-color: var(--c-danger); }
+.dk .clear > .right > .btn + .btn { margin-left: var(--sp-2); }
+.dk .btn.formbutton-narrow.formbutton-success { background: var(--c-primary); color: var(--c-text-on-primary); width: auto; padding: 0 var(--sp-3); }
+.dk #Filter.btn { background: var(--c-surface); border-color: var(--c-border-strong); color: var(--c-text-muted); height: var(--control-h-sm); min-height: var(--control-h-sm); }
+.dk #Filter.btn:hover { color: var(--c-link); border-color: var(--c-focus); }
+.dk .btn .icon { font-size: 15px; line-height: 1; }
+.dk .input-group-btn .btn.formbutton-narrow { width: auto; min-width: 36px; height: var(--control-h); border-color: var(--c-border-strong); background: var(--c-surface-2); }
+
+/* form layout */
+.dk .form-horizontal .form-group { margin-left: 0; margin-right: 0; margin-bottom: var(--sp-4); }
+.dk .form-horizontal .form-group > [class*="col-"] { padding-left: 0; padding-right: var(--sp-4); }
+.dk .form-horizontal .form-group > [class*="col-"]:last-child { padding-right: 0; }
+.dk .control-label, .dk .form-horizontal .control-label {
+  font-weight: var(--fw-medium); color: var(--c-text); font-size: var(--fs-sm);
+  text-align: left; line-height: 1.35;
+  padding-top: calc((var(--control-h) - 1.35em) / 2);      /* first label line is centred on the control */
+}
+.dk .control-label:after { content: none; }
+.dk .form-horizontal .control-label em { margin-right: 2px; }
+.dk .form-horizontal .col-sm-3.input-sm, .dk .form-horizontal .input-sm:not(input):not(select) { height: auto; padding-top: calc((var(--control-h) - 1.5em) / 2); font-size: var(--fs-sm); line-height: 1.5; color: var(--c-text-subtle); }
+.dk .form-horizontal .col-text { padding-top: calc((var(--control-h) - 1.5em) / 2); }
+
+/* One field width per form: core templates mix col-sm-9 and col-sm-6 + col-sm-3 (hint). The field always takes
+   the full control column; a text hint ("(Optional)", "(1 - 64)") moves below it as help text. */
+@media (min-width: 768px) {
+  .dk .form-horizontal .form-group > label.col-sm-3 + .col-sm-6:last-child,
+  .dk .form-horizontal .form-group > label.col-sm-3 + .col-sm-6:has(+ .col-sm-3.input-sm:last-child) { width: 75%; padding-right: 0; }
+  .dk .form-horizontal .form-group > .col-sm-6 + .col-sm-3.input-sm:last-child:not(.dk-unit) { width: 75%; margin-left: 25%; padding-top: 4px; }
+}
+.dk .form-horizontal .form-group > .dk-hint-empty { display: none; }
+/* Unit rows ("MB", "%", "s" as loose text in core templates): danke.js only adds classes, the unit is drawn as an
+   addon joined to the field — same look as the real .input-group-addon rows. */
+.dk .form-horizontal .form-group.dk-unit-row { display: flex; flex-wrap: wrap; align-items: flex-start; }
+.dk .form-horizontal .form-group.dk-unit-row::before, .dk .form-horizontal .form-group.dk-unit-row::after { content: none; }
+.dk .form-horizontal .form-group.dk-unit-row > label { flex: 0 0 100%; max-width: 100%; }
+.dk .form-horizontal .form-group.dk-unit-row > .dk-has-unit { flex: 1 1 0; width: auto; min-width: 0; padding-right: 0; float: none; }
+.dk .form-horizontal .form-group.dk-unit-row > .dk-has-unit .form-control { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.dk .form-horizontal .form-group.dk-unit-row > .dk-unit {
+  flex: 0 0 auto; float: none; width: auto; min-width: 46px; height: var(--control-h); margin: 0; padding: 0 var(--sp-3);
+  display: flex; align-items: center; justify-content: center; white-space: pre;
+  color: var(--c-text-muted); background: var(--c-surface-2); font-size: var(--fs-sm); line-height: 1;
+  border: 1px solid var(--c-border-strong); border-left: 0; border-radius: 0 var(--r-md) var(--r-md) 0;
+}
+@media (min-width: 768px) {
+  .dk .form-horizontal .form-group.dk-unit-row > label { flex: 0 0 25%; max-width: 25%; }
+}
+
+.dk .form-control {
+  height: var(--control-h); padding: 6px var(--sp-3);
+  font-family: var(--font-sans); font-size: var(--fs-sm); color: var(--c-text);
+  background-color: var(--c-surface); border: 1px solid var(--c-border-strong); border-radius: var(--r-md);
+  box-shadow: none; transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.dk .form-control:hover { border-color: var(--c-text-subtle); }
+.dk .form-control:focus { border-color: var(--c-focus); box-shadow: 0 0 0 3px var(--c-focus-ring); outline: none; }
+.dk .form-control::placeholder { color: var(--c-text-subtle); opacity: 1; }
+.dk .form-control[disabled], .dk .form-control[readonly], .dk fieldset[disabled] .form-control {
+  background: var(--c-surface-2); color: var(--c-text-muted); border-color: var(--c-border);
+}
+.dk input[type="password"].form-control[readonly] { background: var(--c-surface); color: var(--c-text); border-color: var(--c-border-strong); }  /* ISPConfig's anti-autofill trick: looks normal */
+.dk textarea.form-control { height: auto; min-height: 90px; line-height: 1.5; padding: var(--sp-2) var(--sp-3); }
+.dk select.form-control {
+  -webkit-appearance: none; -moz-appearance: none; appearance: none; padding-right: 30px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--c-text-muted) 50%), linear-gradient(135deg, var(--c-text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 50%, calc(100% - 10px) 50%;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.dk select.form-control[multiple], .dk select.form-control[size] { background-image: none; padding-right: var(--sp-3); height: auto; }
+.dk select.form-control option { background: var(--c-surface); color: var(--c-text); }
+.dk .input-group-addon {
+  color: var(--c-text-muted); background: var(--c-surface-2); border-color: var(--c-border-strong);
+  font-size: var(--fs-sm); border-radius: var(--r-md);
+}
+.dk .input-group .form-control:first-child, .dk .input-group-addon:first-child, .dk .input-group-btn:first-child > .btn { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.dk .input-group .form-control:last-child, .dk .input-group-addon:last-child, .dk .input-group-btn:last-child > .btn { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.dk .input-group-btn > .btn { height: var(--control-h); }
+.dk .input-group-addon { height: var(--control-h); padding-top: 0; padding-bottom: 0; line-height: calc(var(--control-h) - 2px); }
+.dk .input-group-field { border-radius: var(--r-md); }
+.dk .input-group-field .form-control { height: var(--control-h) !important; }
+/* Composite rows built with .input-group-field (mailbox "name @ domain [copy]"): one flex row, equal heights,
+   the select takes the remaining width, the icon button closes the row. */
+.dk .input-group:has(> .input-group-field) { display: flex; align-items: stretch; width: 100%; }
+.dk .input-group:has(> .input-group-field) > * { float: none; display: block; width: auto; }
+.dk .input-group:has(> .input-group-field) > .form-control { flex: 1 1 45%; min-width: 0; border-radius: var(--r-md) 0 0 var(--r-md); }
+.dk .input-group:has(> .input-group-field) > .input-group-addon {
+  flex: 0 0 auto; display: flex; align-items: center; padding: 0 10px; border-left: 0; border-right: 0; border-radius: 0;
+}
+.dk .input-group:has(> .input-group-field) > .input-group-field { flex: 1 1 45%; min-width: 0; border-radius: 0; white-space: normal; }
+.dk .input-group:has(> .input-group-field) > .input-group-field:has(> .btn) { flex: 0 0 auto; display: flex; }
+.dk .input-group > .input-group-field .select2-container .select2-choice,
+.dk .input-group > .input-group-field select.form-control { border-radius: 0 !important; }
+.dk .input-group > .input-group-field:last-child .select2-container .select2-choice,
+.dk .input-group > .input-group-field:last-child select.form-control { border-radius: 0 var(--r-md) var(--r-md) 0 !important; }
+.dk .input-group > .input-group-field > .btn.formbutton-narrow {
+  width: 40px; min-width: 40px; height: var(--control-h); min-height: var(--control-h); margin: 0;
+  border: 1px solid var(--c-border-strong); border-left: 0; border-radius: 0 var(--r-md) var(--r-md) 0;
+  background: var(--c-surface-2); color: var(--c-text-muted); font-size: 14px;
+}
+.dk .input-group > .input-group-field > .btn.formbutton-narrow:hover { background: var(--c-surface-3); color: var(--c-text); border-color: var(--c-border-strong); }
+.dk .input-group .form-control:focus, .dk .input-group .select2-container-active { position: relative; z-index: 3; }
+
+/* checkboxes / radios: own drawing so the unchecked box has a clear outline in dark mode (native ones look disabled) */
+.dk input[type="checkbox"], .dk input[type="radio"] {
+  -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  display: inline-grid; place-content: center; vertical-align: middle;
+  width: 16px; height: 16px; flex: 0 0 auto; padding: 0;
+  border: 1.5px solid var(--c-border-strong); border-radius: 4px; background: var(--c-surface);
+  cursor: pointer; accent-color: var(--c-primary);
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.dk input[type="radio"] { border-radius: 50%; }
+.dk input[type="checkbox"]:hover, .dk input[type="radio"]:hover { border-color: var(--c-focus); }
+.dk input[type="checkbox"]::before {
+  content: ""; width: 10px; height: 10px; transform: scale(0); background: var(--c-text-on-primary);
+  clip-path: polygon(14% 44%, 0 65%, 43% 100%, 100% 18%, 84% 4%, 41% 66%);
+}
+.dk input[type="radio"]::before { content: ""; width: 6px; height: 6px; border-radius: 50%; transform: scale(0); background: var(--c-text-on-primary); }
+.dk input[type="checkbox"]:checked, .dk input[type="radio"]:checked { background: var(--c-primary); border-color: var(--c-primary); }
+.dk input[type="checkbox"]:checked::before, .dk input[type="radio"]:checked::before { transform: scale(1); }
+.dk input[type="checkbox"]:indeterminate { background: var(--c-primary); border-color: var(--c-primary); }
+.dk input[type="checkbox"]:indeterminate::before { transform: scale(1); clip-path: none; height: 2px; }
+.dk input[type="checkbox"]:disabled, .dk input[type="radio"]:disabled { opacity: .5; cursor: not-allowed; }
+.dk .form-group input[type='checkbox'] { margin-top: calc((var(--control-h) - 16px) / 2); }
+.dk .form-group label.inlineLabel input[type='checkbox'], .dk .form-group label.inlineLabel input[type='radio'] { margin-top: 0; margin-right: 6px; position: relative; top: -1px; }
+.dk .form-group .inlineLabel { line-height: 1.9; font-size: var(--fs-sm); color: var(--c-text); }
+.dk .checkbox label, .dk .radio label, .dk .checkbox-inline, .dk .radio-inline { color: var(--c-text); font-size: var(--fs-sm); }
+.dk .checkbox-inline input[type='checkbox'], .dk .radio-inline input[type='radio'] { margin-top: 2px; }
+
+/* validation */
+.dk .has-error .form-control { border-color: var(--c-danger); }
+.dk .has-error .control-label, .dk .has-error .help-block { color: var(--c-danger); }
+.dk .has-success .form-control { border-color: var(--c-success); }
+
+/* form footer (Save / Cancel row inside the tab card) */
+.dk .tab-content .right:has(> .formbutton-success),
+.dk .tab-content .clear:has(> .right > .formbutton-success) { display: flex; gap: var(--sp-2); }
+.dk .tab-content > .tab-pane > .clear:last-of-type:has(.formbutton-success),
+.dk .tab-content > .tab-pane > div:last-of-type:has(> .right > .formbutton-success) {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2);
+  margin: var(--sp-6) calc(var(--sp-6) * -1) calc(var(--sp-6) * -1); padding: var(--sp-4) var(--sp-6);
+  border-top: 1px solid var(--c-border); background: var(--c-surface-2);
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+}
+.dk .tab-content .right { margin-left: auto; }
+
+/* ---------- 9. Tabs ---------- */
+.dk .content-tab-wrapper { margin-bottom: var(--sp-6); overflow: hidden; padding: 0; }
+/* tab row: scrolls sideways when the tabs do not fit; the overflowing edge fades out (classes set by danke.js),
+   and the active tab is scrolled into view. The divider line belongs to the tab body so the fade does not cut it. */
+.dk-tabs-scroller { overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
+.dk-tabs-scroller::-webkit-scrollbar { display: none; }
+.dk-tabs-scroller.can-scroll-right { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 44px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 44px), transparent); }
+.dk-tabs-scroller.can-scroll-left { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 44px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 44px), transparent); }
+.dk-tabs-scroller.can-scroll-left.can-scroll-right { -webkit-mask-image: linear-gradient(to right, transparent, #000 44px, #000 calc(100% - 44px), transparent); mask-image: linear-gradient(to right, transparent, #000 44px, #000 calc(100% - 44px), transparent); }
+.dk .content-tab-wrapper > .tab-content { border-top: 1px solid var(--c-border); }
+.dk .content-tab-wrapper .nav-tabs {
+  display: flex; flex-wrap: nowrap; gap: var(--sp-1);
+  padding: 0 var(--sp-4); border: 0; background: transparent; margin: 0;
+}
+.dk .content-tab-wrapper .nav-tabs > li { float: none; margin: 0; flex: 0 0 auto; }
+.dk .content-tab-wrapper .nav-tabs > li > a,
+.dk .content-tab-wrapper .nav-tabs li:not(:first-child) a {
+  margin: 0; padding: 14px var(--sp-3) 12px;
+  border: 0 !important; border-bottom: 2px solid transparent !important; border-radius: 0;
+  background: transparent !important;
+  color: var(--c-text-muted); font-size: var(--fs-sm); font-weight: var(--fw-medium);
+  white-space: nowrap; transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.dk .content-tab-wrapper .nav-tabs > li > a:hover { color: var(--c-text); border-bottom-color: var(--c-border-strong) !important; text-decoration: none; }
+.dk .content-tab-wrapper .nav-tabs > li.active > a,
+.dk .content-tab-wrapper .nav-tabs > li.active > a:hover,
+.dk .content-tab-wrapper .nav-tabs > li.active > a:focus {
+  color: var(--c-link); border-bottom-color: var(--c-primary) !important; font-weight: var(--fw-semibold);
+}
+.dk .tab-content { padding: var(--sp-6); }
+.dk .nav-tabs { border-bottom-color: var(--c-border); }
+.dk .nav-tabs > li > a { color: var(--c-text-muted); }
+.dk .nav-tabs > li > a:hover { background: var(--c-surface-2); border-color: transparent; }
+.dk .nav-tabs > li.active > a, .dk .nav-tabs > li.active > a:hover, .dk .nav-tabs > li.active > a:focus { color: var(--c-text); background: var(--c-surface); border-color: var(--c-border) var(--c-border) transparent; }
+.dk .nav-pills > li > a { border-radius: var(--r-md); color: var(--c-text-muted); }
+.dk .nav-pills > li.active > a { background: var(--c-primary); color: var(--c-text-on-primary); }
+
+/* ---------- 10. Alerts ---------- */
+.dk .alert {
+  display: flex; gap: var(--sp-3); align-items: flex-start;
+  padding: var(--sp-3) var(--sp-4); margin-bottom: var(--sp-4);
+  border: 1px solid transparent; border-radius: var(--r-md);
+  font-size: var(--fs-sm); line-height: 1.5;
+}
+.dk .alert::before { font-family: "bootstrap-icons"; font-size: 17px; line-height: 1.3; flex: 0 0 auto; }
+.dk .alert > :last-child, .dk .alert p:last-child { margin-bottom: 0; }
+.dk .alert p { margin: 0 0 var(--sp-1); }
+.dk .alert ul { margin: 0; padding: 0; }
+.dk .alert-success { color: var(--c-success); background: var(--c-success-soft); border-color: color-mix(in srgb, var(--c-success) 25%, transparent); }
+.dk .alert-success::before { content: "\f26b"; }
+.dk .alert-info, .dk .alert-notification { color: var(--c-info); background: var(--c-info-soft); border-color: color-mix(in srgb, var(--c-info) 25%, transparent); }
+.dk .alert-info::before, .dk .alert-notification::before { content: "\f431"; }
+.dk .alert-warning { color: var(--c-warning); background: var(--c-warning-soft); border-color: color-mix(in srgb, var(--c-warning) 30%, transparent); }
+.dk .alert-warning::before { content: "\f33b"; }
+.dk .alert-danger { color: var(--c-danger); background: var(--c-danger-soft); border-color: color-mix(in srgb, var(--c-danger) 30%, transparent); }
+.dk .alert-danger::before { content: "\f623"; }
+.dk .alert a, .dk .alert-notification a { color: inherit; font-weight: var(--fw-semibold); text-decoration: underline; }
+.dk .alert-label { width: auto; font-weight: var(--fw-semibold); }
+.dk .alert-label, .dk .alert-content { display: block; }
+.dk .alert.clear::after { content: none; }
+.dk .alert-dismissible { padding-right: var(--sp-4); }
+.dk .alert-dismissible .close { order: 99; position: static; margin-left: auto; color: inherit; opacity: .7; text-shadow: none; }
+.dk .alert-dismissible .close:hover { opacity: 1; }
+.dk .close { color: var(--c-text); text-shadow: none; opacity: .6; }
+/* ISPConfig per-module status banner */
+.dk .systemmonitor-state { border-radius: var(--r-md); }
+.dk .systemmonitor-state.state-info { padding: var(--sp-3) var(--sp-4); background: var(--c-info-soft); color: var(--c-info); }
+.dk .systemmonitor-state.state-info .statusMsg { display: block; }
+.dk .systemmonitor-state .statusMsg ul { margin: var(--sp-1) 0; }
+.dk .systemmonitor-state .online { color: var(--c-success); }
+.dk .systemmonitor-state .offline { color: var(--c-danger); }
+#errorMsg { color: var(--c-danger); background: var(--c-danger-soft); padding: var(--sp-3) var(--sp-4); border-radius: var(--r-md); margin-bottom: var(--sp-3); }
+#OKMsg { color: var(--c-success); background: var(--c-success-soft); padding: var(--sp-3) var(--sp-4); border-radius: var(--r-md); margin-bottom: var(--sp-3); }
+.dk .confirmpassworderror { color: var(--c-danger); font-size: var(--fs-sm); }
+.dk .confirmpasswordok { color: var(--c-success); font-size: var(--fs-sm); }
+
+/* ---------- 11. Badges (status) ---------- */
+.dk-badge, .dk .label, .dk .badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; border-radius: var(--r-pill);
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold); line-height: 1.5; white-space: nowrap;
+  background: var(--c-neutral-soft); color: var(--c-text-muted);
+}
+.dk-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.dk-badge--on, .dk .label-success { background: var(--c-success-soft); color: var(--c-success); }
+.dk-badge--off { background: var(--c-neutral-soft); color: var(--c-text-muted); }
+.dk-badge--warn, .dk .label-warning { background: var(--c-warning-soft); color: var(--c-warning); }
+.dk-badge--err, .dk .label-danger { background: var(--c-danger-soft); color: var(--c-danger); }
+.dk .label-info, .dk .label-primary { background: var(--c-info-soft); color: var(--c-info); }
+.dk .label-default { background: var(--c-neutral-soft); color: var(--c-text-muted); }
+.dk-badge--type { background: var(--c-accent-soft); color: var(--c-accent-text); font-family: var(--font-mono); letter-spacing: .02em; }
+.dk-badge--type::before { content: none; }
+
+/* ---------- 12. Pagination ---------- */
+.dk .pagination { margin: 0; display: inline-flex; gap: 2px; flex-wrap: wrap; }
+.dk .pagination > li > a, .dk .pagination > li > span {
+  float: none; display: inline-flex; align-items: center; justify-content: center;
+  min-width: 32px; height: 32px; padding: 0 var(--sp-2); margin: 0;
+  border: 1px solid transparent; border-radius: var(--r-md) !important;
+  background: transparent; color: var(--c-text-muted); font-weight: var(--fw-medium); font-size: var(--fs-sm);
+}
+.dk .pagination > li > a:hover { background: var(--c-surface-2); color: var(--c-text); border-color: var(--c-border); text-decoration: none; }
+.dk .pagination > .active > a, .dk .pagination > .active > a:hover, .dk .pagination > .active > a:focus {
+  background: var(--c-primary); border-color: var(--c-primary); color: var(--c-text-on-primary);
+}
+.dk .pagination > .disabled > a { background: transparent; color: var(--c-text-subtle); }
+
+/* ---------- 13. Meters / progress ---------- */
+.dk .progress {
+  position: relative; width: 100%; max-width: 360px; height: 8px; margin: 6px 0 0;
+  overflow: visible; background: var(--c-surface-3); border-radius: var(--r-pill); box-shadow: none; font-weight: var(--fw-semibold);
+}
+.dk .progress .progress-bar, .dk .progress [class*="progress-bar-"] {
+  height: 100%; border-radius: var(--r-pill); box-shadow: none; background-image: none !important;
+  background-color: var(--c-accent); float: left; position: static; text-align: left; max-width: 100%;
+}
+.dk .progress .progress-bar-warning { background-color: var(--c-warning-solid); }
+.dk .progress .progress-bar-danger { background-color: var(--c-danger-solid); }
+.dk .progress { margin-right: 48px; width: calc(100% - 48px); }   /* 48px = room for the percentage beside the bar */
+.dk .progress span:not(.sr-only) {
+  position: absolute; left: calc(100% + 8px); top: 50%; transform: translateY(-50%); width: auto;
+  color: var(--c-text-muted); font-size: var(--fs-xs); font-weight: var(--fw-semibold); white-space: nowrap; z-index: 2; text-align: left;
+}
+.dk td .progress { margin-top: 0; margin-bottom: 0; min-width: 90px; max-width: none; vertical-align: middle; }
+/* quota tables: the bar cell keeps room for the bar AND the percentage beside it — nothing is clipped */
+.dk .table tbody tr td:has(> .progress) { overflow: visible; overflow-wrap: normal; white-space: nowrap; width: 32%; min-width: 170px; }
+.dk .table td:has(> .progress):last-child { padding-right: var(--sp-5); }
+.dk .tab-content .progress span:not(.sr-only) { left: 0; top: calc(100% + 4px); transform: none; }   /* long labels in forms: below the bar */
+.dk .tab-content .progress { margin: 8px 0 22px; }
+
+/* password strength (scrigo.js.php writes inline widths/colours) */
+.dk #passBar { height: 8px; min-width: 100px; border-radius: var(--r-pill); background: var(--c-surface-3); overflow: hidden; margin-right: var(--sp-2); }
+.dk #passBar > div { border-radius: var(--r-pill); }
+.dk #passText { font-size: var(--fs-sm); color: var(--c-text-muted); }
+
+/* ---------- 14. Dropdowns & modals ---------- */
+.dk .dropdown-menu {
+  padding: var(--sp-1) 0; margin-top: 6px;
+  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg); font-size: var(--fs-sm);
+}
+.dk .dropdown-menu > li > a { color: var(--c-text); padding: 6px var(--sp-4); }
+.dk .dropdown-menu > li > a:hover, .dk .dropdown-menu > li > a:focus { background: var(--c-surface-2); color: var(--c-text); }
+.dk .dropdown-menu .divider { background: var(--c-border); margin: var(--sp-1) 0; }
+.dk .modal-backdrop { background: var(--c-overlay); }
+.dk .modal-backdrop.in { opacity: 1; }
+.dk .modal-content { background: var(--c-surface); color: var(--c-text); border: 1px solid var(--c-border); border-radius: var(--r-xl); box-shadow: var(--shadow-lg); }
+.dk .modal-header, .dk .modal-footer { border-color: var(--c-border); padding: var(--sp-4) var(--sp-5); }
+.dk .modal-body { padding: var(--sp-5); }
+.dk .modal-title { font-weight: var(--fw-semibold); font-size: var(--fs-md); }
+.dk .modal-body ul { margin: 0; padding-left: var(--sp-5); }
+
+/* ---------- 15. Tooltip / popover ---------- */
+.dk .tooltip-inner { background: var(--dk-navy-850); color: #FFFFFF; font-size: var(--fs-xs); border-radius: var(--r-sm); padding: 5px 9px; max-width: 320px; }
+:root[data-theme="dark"] .dk .tooltip-inner { background: #E6EDF5; color: #0B1628; }
+.dk .tooltip.top .tooltip-arrow { border-top-color: var(--dk-navy-850); }
+.dk .tooltip.bottom .tooltip-arrow { border-bottom-color: var(--dk-navy-850); }
+.dk .tooltip.left .tooltip-arrow { border-left-color: var(--dk-navy-850); }
+.dk .tooltip.right .tooltip-arrow { border-right-color: var(--dk-navy-850); }
+:root[data-theme="dark"] .dk .tooltip.top .tooltip-arrow { border-top-color: #E6EDF5; }
+:root[data-theme="dark"] .dk .tooltip.bottom .tooltip-arrow { border-bottom-color: #E6EDF5; }
+:root[data-theme="dark"] .dk .tooltip.left .tooltip-arrow { border-left-color: #E6EDF5; }
+:root[data-theme="dark"] .dk .tooltip.right .tooltip-arrow { border-right-color: #E6EDF5; }
+.dk .popover { background: var(--c-surface); color: var(--c-text); border-color: var(--c-border); border-radius: var(--r-lg); box-shadow: var(--shadow-md); }
+.dk .popover-title { background: var(--c-surface-2); border-color: var(--c-border); }
+
+/* ---------- 16. Panels (collapsible groups in System → Server config etc.) ---------- */
+/* ISPConfig wraps many form/list bodies in <div class="panel panel_xyz"> — a plain wrapper, not a visual panel */
+.dk .tab-content .panel:not(.panel-default), .dk #pageContent > .panel:not(.panel-default) { border: 0; background: transparent; box-shadow: none; margin: 0; border-radius: 0; }
+.dk .tab-content .table-wrapper { box-shadow: none; }
+.dk .panel { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg); box-shadow: none; margin-bottom: var(--sp-3); }
+.dk .panel-group .panel + .panel { margin-top: var(--sp-2); }
+.dk .panel-default > .panel-heading {
+  background: var(--c-surface-2); color: var(--c-text); border-color: var(--c-border);
+  border-radius: calc(var(--r-lg) - 1px) calc(var(--r-lg) - 1px) 0 0; padding: var(--sp-3) var(--sp-4);
+}
+.dk .panel-title { font-size: var(--fs-sm); font-weight: var(--fw-semibold); }
+.dk .panel-title > a { display: flex; align-items: center; gap: var(--sp-2); color: var(--c-text); text-decoration: none; }
+.dk .panel-title > a::before { content: "\f282"; font-family: "bootstrap-icons"; font-size: 12px; transition: transform var(--dur) var(--ease); color: var(--c-text-subtle); }
+.dk .panel-title > a.collapsed::before { transform: rotate(-90deg); }
+.dk .panel-body { padding: var(--sp-5) var(--sp-4); }
+.dk .panel-default > .panel-heading + .panel-collapse > .panel-body { border-top-color: var(--c-border); }
+.dk .list-group-item { background: var(--c-surface); border-color: var(--c-border); color: var(--c-text); }
+
+/* ---------- 17. Select2 3.x + datetimepicker ---------- */
+/* select2 copies class="form-control" from the <select> onto its container. The container is neutralised here so
+   every dropdown has exactly ONE box (.select2-choice / .select2-choices) and one focus ring — forms, list
+   filters, multi-selects, the sidebar server select and the Monitor refresh select alike. */
+.dk .select2-container, .dk .select2-container.form-control {
+  display: block; width: 100%; height: auto !important; min-height: 0; margin: 0; padding: 0 !important;
+  border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; outline: 0;
+  font-family: var(--font-sans); font-size: var(--fs-sm); font-weight: var(--fw-regular);
+  text-transform: none; letter-spacing: 0; text-align: left; line-height: 1.4; vertical-align: middle;
+}
+.dk .select2-container .select2-choice {
+  display: block; height: var(--control-h); line-height: calc(var(--control-h) - 2px); padding: 0 30px 0 var(--sp-3);
+  background: var(--c-surface) none; color: var(--c-text); font-weight: var(--fw-regular); text-decoration: none;
+  border: 1px solid var(--c-border-strong); border-radius: var(--r-md); box-shadow: none; filter: none;
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.dk .select2-container .select2-choice:hover { border-color: var(--c-text-subtle); }
+.dk .select2-container .select2-choice > .select2-chosen { margin-right: 0; color: inherit; }
+.dk .select2-container.select2-allowclear .select2-choice .select2-chosen { margin-right: 20px; }
+.dk .select2-container .select2-choice.select2-default, .dk .select2-default { color: var(--c-text-subtle) !important; }
+/* arrow + clear "x": font glyphs instead of the select2.png sprite (crisp, follow the text colour in both modes) */
+.dk .select2-container .select2-choice .select2-arrow {
+  top: 0; right: 0; width: 28px; height: 100%; display: flex; align-items: center; justify-content: center;
+  background: transparent none; border: 0; border-radius: 0; filter: none;
+}
+.dk .select2-container .select2-choice .select2-arrow b { display: block; width: auto; height: auto; background: none !important; filter: none; opacity: 1; }
+.dk .select2-container .select2-choice .select2-arrow b::before {
+  content: "\f282"; display: block; font-family: "bootstrap-icons"; font-size: 11px; font-weight: 400; line-height: 1; color: var(--c-text-muted);
+  transition: transform var(--dur-fast) var(--ease);
+}
+.dk .select2-dropdown-open .select2-choice .select2-arrow b::before { transform: rotate(180deg); }
+.dk .select2-container .select2-choice abbr {
+  top: 50%; right: 26px; width: 18px; height: 18px; margin-top: -9px; border: 0; border-radius: 50%;
+  background: none !important; filter: none; font-size: 0; text-decoration: none; cursor: pointer;
+}
+.dk .select2-container .select2-choice abbr::before {
+  content: "\f62a"; display: block; font-family: "bootstrap-icons"; font-size: 16px; line-height: 18px; text-align: center; color: var(--c-text-subtle);
+}
+.dk .select2-container .select2-choice abbr:hover::before { color: var(--c-text); }
+/* focused (closed): one ring, same as inputs */
+.dk .select2-container-active .select2-choice, .dk .select2-container-active .select2-choices {
+  border: 1px solid var(--c-focus) !important; border-radius: var(--r-md); box-shadow: 0 0 0 3px var(--c-focus-ring);
+  background: var(--c-surface) none; outline: 0;
+}
+/* open: box + list are ONE connected panel — one outline in the focus colour around both, no ring on the box,
+   the box loses the corners on the side where the list is attached (list rules: "open list" below) */
+.dk .select2-dropdown-open .select2-choice, .dk .select2-dropdown-open .select2-choices,
+.dk .select2-container-multi.select2-dropdown-open .select2-choices {
+  border: 1px solid var(--c-focus) !important; box-shadow: none !important; outline: 0;
+  border-radius: var(--r-md) var(--r-md) 0 0 !important; background: var(--c-surface) none;
+}
+.dk .select2-dropdown-open.select2-drop-above .select2-choice, .dk .select2-dropdown-open.select2-drop-above .select2-choices,
+.dk .select2-container-multi.select2-dropdown-open.select2-drop-above .select2-choices { border-radius: 0 0 var(--r-md) var(--r-md) !important; }
+.dk .select2-container.select2-container-disabled .select2-choice, .dk .select2-container-multi.select2-container-disabled .select2-choices {
+  background: var(--c-surface-2); color: var(--c-text-muted); border-color: var(--c-border) !important; cursor: not-allowed;
+}
+.dk .has-error .select2-container .select2-choice, .dk .has-error .select2-container .select2-choices { border-color: var(--c-danger) !important; }
+/* multi-select */
+.dk .select2-container-multi .select2-choices, .dk .select2-container-multi.form-control .select2-choices {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  height: auto; min-height: var(--control-h); margin: 0; padding: 3px 4px;
+  background: var(--c-surface) none; color: var(--c-text);
+  border: 1px solid var(--c-border-strong) !important; border-radius: var(--r-md); box-shadow: none; cursor: text;
+}
+.dk .select2-container-multi .select2-choices:hover { border-color: var(--c-text-subtle) !important; }
+.dk .select2-container-multi.select2-container-active .select2-choices, .dk .select2-container-multi.select2-container-active.form-control .select2-choices,
+.dk .select2-container-multi.select2-dropdown-open .select2-choices, .dk .select2-container-multi.select2-dropdown-open.form-control .select2-choices { border-color: var(--c-focus) !important; }
+.dk .select2-container-multi .select2-choices li { float: none; }
+.dk .select2-container-multi .select2-choices .select2-search-choice {
+  margin: 0; padding: 2px 8px 2px 22px; line-height: 20px;
+  background: var(--c-primary-soft) none; border: 0; color: var(--c-primary-soft-text); box-shadow: none; border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+}
+.dk .select2-container-multi .select2-search-choice-close {
+  left: 4px; top: 50%; width: 16px; height: 16px; margin-top: -8px; background: none !important; filter: none; font-size: 0;
+}
+.dk .select2-container-multi .select2-search-choice-close::before {
+  content: "\f62a"; display: block; font-family: "bootstrap-icons"; font-size: 15px; line-height: 16px; text-align: center; color: inherit; opacity: .75;
+}
+.dk .select2-container-multi .select2-search-choice-close:hover::before { opacity: 1; }
+.dk .select2-container-multi .select2-choices .select2-search-field { flex: 1 1 40px; min-width: 40px; }
+.dk .select2-container-multi .select2-choices .select2-search-field input {
+  margin: 0; padding: 4px 6px; max-width: 100%; color: var(--c-text); background: transparent !important;
+  font-family: var(--font-sans); font-size: var(--fs-sm); box-shadow: none;
+}
+/* compact variant in list filter rows / list header (rows-per-page) */
+.dk thead.dark .select2-container .select2-choice { height: var(--control-h-sm); line-height: calc(var(--control-h-sm) - 2px); padding: 0 22px 0 8px; }
+.dk thead.dark .select2-container .select2-choice .select2-arrow { width: 22px; }
+.dk thead.dark .select2-container .select2-choice abbr { right: 20px; }
+.dk thead.dark .select2-container { min-width: 56px; }
+.dk thead.dark th .select2-container { display: inline-block; width: auto; min-width: 72px; }
+
+/* open list (select2 appends it to <body>): attached to the box — its border overlaps the box border by 1px and has
+     the same colour, so box + list read as one panel. A list wider than its box (narrow filter selects) gets the free
+     corner rounded (.dk-drop-wide, set by danke.js). Elevation shadow only, no ring. */
+.select2-drop, .select2-drop.select2-drop-above, .select2-drop-active, .select2-drop.select2-drop-above.select2-drop-active {
+  margin-top: -1px; padding: 4px; min-width: 120px;
+  background: var(--c-surface); color: var(--c-text);
+  border: 1px solid var(--c-focus) !important; border-radius: 0 0 var(--r-md) var(--r-md) !important; box-shadow: var(--shadow-md);
+  font-family: var(--font-sans); font-size: var(--fs-sm);
+}
+.select2-drop.dk-drop-wide { border-top-right-radius: var(--r-md) !important; }
+.select2-drop.select2-drop-above, .select2-drop.select2-drop-above.select2-drop-active { margin-top: 1px; border-radius: var(--r-md) var(--r-md) 0 0 !important; }
+.select2-drop.select2-drop-above.dk-drop-wide { border-bottom-right-radius: var(--r-md) !important; }
+/* search box: surface colour in both modes (select2.css paints a white gradient + sprite icon) */
+.select2-drop .select2-search { display: block; min-height: 0; padding: 0 0 4px; }
+.select2-drop .select2-search input, .select2-drop .select2-search input.select2-active, .select2-drop.select2-drop-above .select2-search input {
+  min-height: 30px; margin: 0; padding: 5px 28px 5px 8px;
+  background: var(--c-surface-2) none !important; color: var(--c-text); caret-color: var(--c-text);
+  border: 1px solid var(--c-border); border-radius: var(--r-sm); box-shadow: none;
+  font-family: var(--font-sans); font-size: var(--fs-sm);
+}
+/* the search field: a quiet field inside the panel — no ring of its own (the panel outline shows the focus, the caret shows where typing goes) */
+.select2-drop .select2-search input:focus, .select2-drop .select2-search input:focus-visible { border-color: var(--c-border-strong); outline: 0 !important; box-shadow: none !important; }
+.select2-container-multi .select2-choices .select2-search-field input:focus, .select2-container-multi .select2-choices .select2-search-field input:focus-visible { outline: 0 !important; box-shadow: none !important; }
+.select2-drop .select2-search input::placeholder { color: var(--c-text-subtle); opacity: 1; }
+.select2-drop .select2-search::after {
+  content: "\f52a"; font-family: "bootstrap-icons"; position: absolute; right: 9px; top: 15px; transform: translateY(-50%);
+  font-size: 12px; line-height: 1; color: var(--c-text-subtle); pointer-events: none;
+}
+.select2-drop .select2-search.select2-search-hidden::after, .select2-drop .select2-search.select2-offscreen::after { content: none; }
+/* results: soft highlight while pointing, solid for the keyboard-highlighted item, a check marks the current value */
+.select2-drop .select2-results { max-height: 260px; margin: 0; padding: 0; color: var(--c-text); scrollbar-width: thin; }
+.select2-drop .select2-results .select2-result { border-radius: var(--r-sm); margin: 1px 0; }
+.select2-drop .select2-results .select2-result-label { padding: 6px 8px; min-height: 1.4em; border-radius: var(--r-sm); }
+.select2-drop .select2-results .select2-highlighted { background: var(--c-primary); color: var(--c-text-on-primary); }
+.select2-drop .select2-results .select2-highlighted:hover { background: var(--c-primary-soft); color: var(--c-primary-soft-text); }
+.select2-drop .select2-results .dk-selected > .select2-result-label { font-weight: var(--fw-semibold); padding-right: 26px; position: relative; }
+.select2-drop .select2-results .dk-selected > .select2-result-label::after {
+  content: "\f633"; font-family: "bootstrap-icons"; font-weight: 400; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; line-height: 1;
+}
+.select2-drop .select2-results .select2-no-results, .select2-drop .select2-results .select2-searching, .select2-drop .select2-results .select2-selection-limit {
+  background: transparent; color: var(--c-text-subtle); padding: 6px 8px;
+}
+.select2-drop .select2-results li em { background: transparent; color: inherit; font-style: normal; text-decoration: underline; }
+.select2-drop .select2-results .flags, .select2-drop .select2-results .active { color: inherit; }
+.datetimepicker { background: var(--c-surface); color: var(--c-text); border-color: var(--c-border); border-radius: var(--r-lg); box-shadow: var(--shadow-md); padding: var(--sp-2); }
+.datetimepicker table tr td.day:hover, .datetimepicker table tr td span:hover, .datetimepicker table th:hover, .datetimepicker table tr td.hour:hover, .datetimepicker table tr td.minute:hover { background: var(--c-surface-2) !important; }
+.datetimepicker table tr td.active, .datetimepicker table tr td.active:hover, .datetimepicker table tr td span.active { background: var(--c-primary) !important; background-image: none !important; color: var(--c-text-on-primary) !important; text-shadow: none; }
+.datetimepicker table tr td.old, .datetimepicker table tr td.new { color: var(--c-text-subtle); }
+.datetimepicker table tr td.today { background: var(--c-accent-soft) !important; background-image: none !important; color: var(--c-accent-text) !important; }
+.datetimepicker-dropdown-bottom-right:before, .datetimepicker-dropdown-bottom-left:before { border-bottom-color: var(--c-border); }
+.datetimepicker-dropdown-bottom-right:after, .datetimepicker-dropdown-bottom-left:after { border-bottom-color: var(--c-surface); }
+
+/* ---------- 18. Global search results (jquery.ispconfigsearch) ---------- */
+.dk ul.gs-resultbox {
+  position: absolute; top: calc(100% + 6px) !important; left: 0 !important; right: 0; width: auto !important; min-width: 320px; z-index: 1100;
+  margin: 0; padding: var(--sp-1); list-style: none;
+  background: var(--c-surface); color: var(--c-text);
+  border: 1px solid var(--c-border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg);
+  max-height: 70vh; overflow-y: auto;
+}
+.dk ul.gs-resultbox li, .dk ul.gs-resultbox li:nth-child(even), .dk ul.gs-resultbox li:first-child, .dk ul.gs-resultbox li:last-child {
+  background: transparent; border: 0; border-radius: var(--r-md); padding: 6px var(--sp-3); color: var(--c-text);
+}
+.dk ul.gs-resultbox li.gs-cheader { background: transparent; border-bottom: 1px solid var(--c-border); border-radius: 0; margin-bottom: var(--sp-1); }
+.dk ul.gs-resultbox li.gs-cheader p.gs-cheader-title { color: var(--c-text-subtle); font-size: var(--fs-xs); font-weight: var(--fw-semibold); text-transform: uppercase; letter-spacing: .05em; }
+.dk ul.gs-resultbox li.gs-cheader p.gs-cheader-limit { color: var(--c-text-subtle); font-size: var(--fs-xs); }
+.dk ul.gs-resultbox li.gs-cdata:hover, .dk ul.gs-resultbox li.gs-cdata a:focus { background: var(--c-surface-2); }
+.dk ul.gs-resultbox li.gs-cdata a { color: var(--c-text); text-decoration: none; display: block; }
+.dk ul.gs-resultbox li p { margin: 0; }
+.dk ul.gs-resultbox li.gs-cdata p span.gs-cdata-title { color: var(--c-text); font-weight: var(--fw-semibold); }
+.dk .gs-loading { background-position: right 8px center !important; }
+
+/* ---------- 19. Misc ISPConfig widgets ---------- */
+/* Loading indicator. ISPConfig creates/shows/hides #ajaxloader itself and positions it inline at "content + 150px"
+   (beside the menu). Only the position is overridden: the middle of the visible content area — right of rail /
+   panel (--content-x: follows panel open, collapsed, Home, drawer) and below the top bar (--content-y: the real
+   height of the top bar, set by danke.js — on phones the bar has a second line; without JS the one-line height). */
+#ajaxloader {
+  position: fixed !important;
+  left: calc(var(--content-x) + (100% - var(--content-x)) / 2 - 36px) !important;
+  top: calc(var(--content-y, var(--layout-topbar-h)) + (100vh - var(--content-y, var(--layout-topbar-h))) / 2 - 36px) !important;
+  margin: 0 !important; pointer-events: none;
+  width: 72px !important; height: 72px !important; padding: 0 !important;
+  border-radius: 50% !important; border: 4px solid var(--c-surface-3) !important; border-top-color: var(--c-primary) !important;
+  background: var(--c-surface) !important; box-shadow: var(--shadow-md); animation: dk-spin .9s linear infinite; z-index: 1050;
+}
+/* Module switch (fix round 5, T1): the old page and menu stay until the new ones are complete (danke.js). When that
+   takes longer than a moment they are dimmed under the loader; the new state then appears in one step. */
+#pageContent, .dk-panel-scroll { transition: opacity var(--dur-fast) linear; }
+:root[data-dk-switching] #pageContent, :root[data-dk-switching] .dk-panel-scroll { opacity: .55; transition: opacity var(--dur) linear .18s; }
+@media (prefers-reduced-motion: reduce) { #pageContent, .dk-panel-scroll, :root[data-dk-switching] #pageContent, :root[data-dk-switching] .dk-panel-scroll { transition: none; } }
+/* message of the theme when a navigation failed (ISPConfig itself reports nothing) */
+.dk-toast {
+  position: fixed; z-index: 1060; left: calc(var(--content-x) + (100% - var(--content-x)) / 2); bottom: calc(var(--footer-h) + var(--sp-4)); transform: translateX(-50%);
+  max-width: min(520px, calc(100vw - 2 * var(--sp-4))); padding: var(--sp-3) var(--sp-4);
+  background: var(--c-danger-soft); color: var(--c-text); border: 1px solid var(--c-danger); border-radius: var(--r-md); box-shadow: var(--shadow-md);
+  font-size: var(--fs-sm);
+}
+.dk-toast[hidden] { display: none; }
+/* fix round 13: confirmation of a save that ISPConfig answers without a message ("Saved.") */
+.dk-toast.dk-toast--ok { background: var(--c-success-soft); border-color: var(--c-success); }
+/* … and a save answered with "reload the page" (Design changed): the old page waits dimmed, nothing can be clicked */
+:root[data-dk-reloading] #pageContent { opacity: .55; pointer-events: none; }
+.dk .jail-symbol { color: var(--c-text-subtle); }
+.dk .copy-to-clipboard-icon::after { color: var(--c-link); }
+.dk .finediff ins { color: var(--c-success); background: var(--c-success-soft); }
+.dk .finediff del { color: var(--c-danger); background: var(--c-danger-soft); }
+.dk .addPlaceholder, .dk .addPlaceholderContent { cursor: pointer; color: var(--c-link); font-family: var(--font-mono); font-size: var(--fs-xs); }
+.dk #template_additional_list ul { list-style: none; padding: 0; }
+.dk #template_additional_list li { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); padding: var(--sp-1) 0; border-bottom: 1px solid var(--c-border); }
+/* charts (Monitor → System State, dashboard metrics): the core templates set inline "background-color: white" —
+   make the canvas transparent; text/grid/legend colours come from the tokens via danke.js (Chart.defaults). */
+.dk canvas#loadchart, .dk canvas#memchart, .dk canvas#rxchart, .dk canvas#txchart, .dk .table-wrapper canvas, .dk .dk-chart-card canvas { background: transparent !important; }
+.dk .flags { color: var(--c-text); }
+
+/* ---------- 20. Dashboard ---------- */
+.dk .dk-dash-header { align-items: center; margin-bottom: var(--sp-5); }
+/* Row order (decided 16 Nov 2026; fix round 6: the quick-actions card is gone — quick actions are in the Home panel):
+     admin  (all limits unlimited → limits card hidden): server status → other dashlets (metrics, quota tables)
+     client (has real limits, .dk-dash--limits):        limits/usage → quota tables
+   Every variant ends with latest news (last but one) and ISPConfig's donation box (last).
+   The rows are siblings in dashboard.htm; danke.js sets .dk-dash--limits and moves the donation dashlet into the
+   bottom row, the order is CSS. */
+.dk-dash { display: flex; flex-direction: column; }
+.dk-dash > * { min-width: 0; }
+.dk-dash-row--overview { order: 2; }
+.dk-dash-row--primary { order: 3; }
+.dk-dash-row--secondary { order: 4; }
+.dk-dash--limits .dk-dash-row--primary { order: 1; }
+.dk-dash--limits .dk-dash-row--secondary { order: 2; }
+.dk-dash--limits .dk-dash-row--overview { order: 4; }
+.dk-dash-row--bottom, .dk-dash--limits .dk-dash-row--bottom { order: 9; }
+.dk-dash-row--bottom:not(:has(> .dk-news:not([hidden]), .dashlet-donate)) { display: none; }
+.dk-dash-donate:empty { display: none; }
+/* without JS the donation dashlet stays in its row — still after the other dashlets */
+.dk-dash-row--secondary > .dk-dashlet:has(.dashlet-donate) { order: 99; }
+.dk-dash [hidden] { display: none !important; }
+/* overview row: server status */
+.dk-dash-row--overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 0 var(--sp-5); align-items: start; }
+.dk-dash-row--overview:not(:has(> :not([hidden]))) { display: none; }
+.dk-status-list, .dk-news-list { list-style: none; margin: 0; padding: 0; }
+.dk-status-item { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--sp-3); padding: var(--sp-3) 0; border-top: 1px solid var(--c-border); }
+.dk-status-item:first-child { border-top: 0; padding-top: 0; }
+.dk-status-item:last-child { padding-bottom: 0; }
+.dk-status-item .dk-badge { flex: 0 0 auto; min-width: 74px; justify-content: center; align-self: center; }
+.dk-status-name { font-weight: var(--fw-semibold); color: var(--c-text); overflow-wrap: anywhere; }
+.dk-status-meta { font-size: var(--fs-xs); color: var(--c-text-subtle); }
+/* fix round 11 (S1): "Details" → the server's Monitor page, at the right end of the row */
+.dk-status-link { margin-left: auto; font-size: var(--fs-xs); font-weight: var(--fw-medium, 500); white-space: nowrap; }
+.dk-status-detail { flex: 0 0 100%; padding-left: calc(74px + var(--sp-3)); font-size: var(--fs-xs); color: var(--c-text-muted); }
+.dk-status-summary { font-size: var(--fs-sm); color: var(--c-text-muted); margin: calc(var(--sp-2) * -1) 0 var(--sp-4); }
+.dk-news-item { padding: var(--sp-3) 0; border-top: 1px solid var(--c-border); }
+.dk-news-item:first-child { border-top: 0; padding-top: 0; }
+.dk-news-item:last-child { padding-bottom: 0; }
+.dk .dk-news-item a { display: block; color: var(--c-text); font-weight: var(--fw-medium); }
+.dk .dk-news-item a:hover { color: var(--c-link); }
+.dk-news-date { display: block; font-size: var(--fs-xs); font-weight: var(--fw-regular); color: var(--c-text-subtle); font-variant-numeric: tabular-nums; }
+/* "Available Modules" dashlet is dropped (it duplicated the sidebar): modules.htm renders only a marker */
+.dk-dashlet:has(> .dk-dashlet-void) { display: none; }
+/* metrics dashlet (core template: bare <div> with <h3> + 4 canvases) → card */
+.dk-dashlet:has(> div canvas) > div { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg); box-shadow: var(--shadow-xs); padding: var(--sp-5); margin-bottom: var(--sp-5); }
+
+/* (600px: the widest quota table — mailbox: address, name, used, quota, bar + % — fits its card without clipping) */
+.dk-dash-row--secondary { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 600px), 1fr)); gap: 0 var(--sp-5); align-items: start; }
+.dk-dash-row--secondary > .dk-dashlet:has(.dashlet-donate),
+.dk-dash-row--secondary > .dk-dashlet:has(canvas) { grid-column: 1 / -1; }
+.dk-dashlet:empty { display: none; }
+/* last row: latest news and the donation box side by side when both are there and there is room */
+.dk-dash-row--bottom { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 0 var(--sp-5); align-items: start; }
+.dk-dashlet > .table-wrapper .table { table-layout: auto; }
+.dk-dashlet .dashlet-donate {
+  padding: var(--sp-4) var(--sp-5) !important; margin-bottom: var(--sp-5);
+  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg);
+}
+.dk-dashlet .dashlet-donate h4 { font-size: var(--fs-sm); font-weight: var(--fw-medium); }
+.dk-dashlet .dashlet-donate p { margin: 0; }
+.dk-dashlet h3 { font-size: var(--fs-md); margin: 0 0 var(--sp-3); }
+
+/* resource tiles (limits.htm) */
+.dk-tiles {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--sp-3);
+}
+.dk-tile {
+  display: flex; flex-direction: column; gap: var(--sp-2);
+  padding: var(--sp-4); min-width: 0;
+  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg);
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.dk-tile:hover { border-color: var(--c-border-strong); box-shadow: var(--shadow-sm); }
+.dk-tile-top { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
+.dk-tile-icon {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: var(--r-md);
+  background: var(--c-primary-soft); color: var(--c-primary-soft-text); font-size: 15px;
+}
+.dk-tile-icon::before { font-family: "bootstrap-icons"; content: "\f412"; line-height: 1; }
+.dk-tile-label { font-size: var(--fs-sm); color: var(--c-text-muted); font-weight: var(--fw-medium); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.dk-tile-value { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; margin-top: auto; }
+.dk-tile-used { font-size: var(--fs-2xl); font-weight: var(--fw-semibold); letter-spacing: -0.02em; line-height: 1.1; color: var(--c-text); font-variant-numeric: tabular-nums; }
+.dk-tile-of { font-size: var(--fs-sm); color: var(--c-text-subtle); }
+.dk-meter { position: relative; height: 6px; border-radius: var(--r-pill); background: var(--c-surface-3); overflow: hidden; }
+.dk-meter-fill { position: absolute; inset: 0 auto 0 0; border-radius: var(--r-pill); background: var(--c-accent); max-width: 100%; }
+.dk-tile.is-warn .dk-meter-fill { background: var(--c-warning-solid); }
+.dk-tile.is-full .dk-meter-fill { background: var(--c-danger-solid); }
+.dk-tile.is-unlimited .dk-meter, .dk-tile.is-unlimited .dk-tile-pct { display: none; }
+.dk-tile-pct { font-size: var(--fs-xs); color: var(--c-text-subtle); font-variant-numeric: tabular-nums; min-height: 1em; }
+.dk-tile.is-warn .dk-tile-pct { color: var(--c-warning); font-weight: var(--fw-semibold); }
+.dk-tile.is-full .dk-tile-pct { color: var(--c-danger); font-weight: var(--fw-semibold); }
+/* key resources first; the rest behind "Show all limits" (danke.js adds .is-key / .is-collapsible) */
+.dk-limits.is-collapsible:not(.is-expanded) .dk-tile:not(.is-key) { display: none; }
+.dk-tile.is-key { order: -1; }
+.dk-limits .dk-when-expanded, .dk-limits.is-expanded .dk-when-collapsed { display: none; }
+.dk-limits.is-expanded .dk-when-expanded { display: inline; }
+/* tile icons per ISPConfig limit field */
+.dk-tile[data-field="limit_web_domain"] .dk-tile-icon::before, .dk-tile[data-field="limit_web_subdomain"] .dk-tile-icon::before, .dk-tile[data-field="limit_web_aliasdomain"] .dk-tile-icon::before { content: "\f3ef"; }
+.dk-tile[data-field="limit_web_quota"] .dk-tile-icon::before, .dk-tile[data-field="limit_traffic_quota"] .dk-tile-icon::before { content: "\f412"; }
+.dk-tile[data-field^="limit_mail"] .dk-tile-icon::before, .dk-tile[data-field="limit_fetchmail"] .dk-tile-icon::before { content: "\f32f"; }
+.dk-tile[data-field="limit_mailbox"] .dk-tile-icon::before { content: "\f42d"; }
+.dk-tile[data-field="limit_mailquota"] .dk-tile-icon::before { content: "\f84c"; }
+.dk-tile[data-field^="limit_spamfilter"] .dk-tile-icon::before, .dk-tile[data-field="limit_mail_wblist"] .dk-tile-icon::before { content: "\f52f"; }
+.dk-tile[data-field^="limit_database"] .dk-tile-icon::before { content: "\f8c4"; }
+.dk-tile[data-field^="limit_dns"] .dk-tile-icon::before, .dk-tile[data-field="limit_domain"] .dk-tile-icon::before { content: "\f2ee"; }
+.dk-tile[data-field="limit_ftp_user"] .dk-tile-icon::before { content: "\f3d8"; }
+.dk-tile[data-field="limit_shell_user"] .dk-tile-icon::before { content: "\f5c3"; }
+.dk-tile[data-field="limit_cron"] .dk-tile-icon::before { content: "\f292"; }
+.dk-tile[data-field="limit_client"] .dk-tile-icon::before { content: "\f4d0"; }
+.dk-tile[data-field^="limit_mail"] .dk-tile-icon, .dk-tile[data-field="limit_fetchmail"] .dk-tile-icon { background: var(--c-accent-soft); color: var(--c-accent-text); }
+.dk-tile[data-field^="limit_dns"] .dk-tile-icon, .dk-tile[data-field="limit_domain"] .dk-tile-icon { background: var(--c-neutral-soft); color: var(--c-text-muted); }
+
+/* ---------- 21. Login ---------- */
+.dk-login { min-height: 100vh; }
+html:has(body.dk-login) {
+  background:
+    radial-gradient(1200px 600px at 100% -10%, color-mix(in srgb, var(--c-accent) 14%, transparent), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, color-mix(in srgb, var(--c-primary) 16%, transparent), transparent 60%),
+    var(--c-bg);
+}
+body.dk-login { background: transparent; }
+.dk-login-shell { min-height: 100vh; display: flex; flex-direction: column; }
+.dk-login-topbar { display: flex; justify-content: flex-end; padding: var(--sp-4) var(--sp-5) 0; }
+.dk-login-main { flex: 1 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--sp-6) var(--sp-4) var(--sp-12); }
+.dk-login-card {
+  width: 100%; max-width: 420px;
+  padding: var(--sp-8) var(--sp-8) var(--sp-6);
+  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-xl); box-shadow: var(--shadow-lg);
+}
+.dk-login-brand { margin-bottom: var(--sp-6); }
+.dk-login-brand .dk-logo { height: 60px; max-width: 100%; }
+.dk-login-credit { margin: var(--sp-3) 0 0; }
+.dk .dk-login-title { font-size: var(--fs-xl); font-weight: var(--fw-semibold); margin: 0 0 var(--sp-1); }
+.dk-login-sub { margin: 0 0 var(--sp-6); color: var(--c-text-muted); font-size: var(--fs-sm); }
+.dk-login-body fieldset { border: 0; padding: 0; margin: 0; }
+.dk-login-body .form-group { margin-bottom: var(--sp-4); }
+.dk-login-body .form-control { height: 42px; font-size: var(--fs-base); }
+.dk-login-body label.dk-field-label { display: block; margin: 0 0 6px; font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--c-text); }
+.dk-login-body .right { float: none; display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-5); }
+.dk-login-body .right .btn { width: 100%; min-height: 42px; }
+.dk-login-body input[type="submit"].btn { color: var(--c-text-on-primary); background: var(--c-primary); border-color: var(--c-primary); font-size: var(--fs-base); }
+.dk-login-body input[type="submit"].btn:hover, .dk-login-body input[type="submit"].btn:focus { background: var(--c-primary-hover); border-color: var(--c-primary-hover); }
+.dk-login-body .right .btn.formbutton-default:not([type="submit"]) { background: transparent; border-color: transparent; color: var(--c-link); font-weight: var(--fw-medium); }
+.dk-login-body .right .btn.formbutton-default:not([type="submit"]):hover { text-decoration: underline; background: transparent; }
+.dk-login-body .checkbox label { color: var(--c-text-muted); display: inline-flex; align-items: center; gap: var(--sp-2); padding-left: 0; }
+.dk-login-body .checkbox input[type="checkbox"] { position: static; margin: 0; }
+.dk-login-body .alert { margin-bottom: var(--sp-4); }
+.dk-login-body h2, .dk-login-body h3 { font-size: var(--fs-md); }
+.dk-login-custom { margin-top: var(--sp-5); padding-top: var(--sp-4); border-top: 1px solid var(--c-border); text-align: center; color: var(--c-text-subtle); }
+.dk-login-foot { margin: var(--sp-5) 0 0; font-size: var(--fs-xs); color: var(--c-text-subtle); }
+.dk-login-foot .bi { color: var(--c-accent-text); font-size: 14px; }
+/* A line of parts joined by " · " (fix round 16, L1 / M1): "Secure connection · <brand> · powered by ISPConfig" below
+   the login card, and the brand text of the panel footer. A part never breaks inside ("powered by ISPConfig" stays
+   together); a line that is too narrow wraps BETWEEN the parts, centred. danke.js (tidySeps) turns a "·" that would
+   be left at a line end into the break itself (.dk-sep-break). Only a brand name longer than the
+   whole line may break inside itself, so nothing is ever cut off. */
+.dk-login-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0 6px; max-width: 100%; text-align: center; }
+.dk-login-foot > .dk-foot-part { display: inline-flex; align-items: center; gap: 0 6px; white-space: nowrap; min-width: 0; }
+.dk-login-foot > .dk-powered { gap: 0 .3em; }
+.dk-login-foot > .dk-foot-brand { display: inline-block; white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
+[data-dk-seps] > .dk-sep-off { display: none; }
+[data-dk-seps] > .dk-sep-break { flex: 0 0 100%; height: 0; overflow: hidden; visibility: hidden; }
+.dk-login-foot a { color: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 2px; border-radius: var(--r-sm); }
+.dk-login-foot a:hover, .dk-login-foot a:focus-visible { color: var(--c-link); text-decoration-color: currentColor; }
+
+/* ---------- 21b. Client → Info tab (client_edit_info.htm) ----------
+   The core template puts the heading, the info list AND all quota dashlets into one .page-header (a flex row
+   in this theme). Lay it out as: heading, info block, then the quota/limit cards in a responsive grid. */
+.dk .tab-pane > .page-header:has(> legend) {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr));
+  align-items: start; justify-content: stretch; gap: var(--sp-5);
+  margin: 0;
+}
+.dk .tab-pane > .page-header:has(> legend) > legend,
+.dk .tab-pane > .page-header:has(> legend) > div:not(.table-wrapper) { grid-column: 1 / -1; float: none; width: auto; margin: 0; }
+.dk .tab-pane > .page-header:has(> legend) > legend { padding-bottom: var(--sp-2); }
+.dk .tab-pane > .page-header:has(> legend) > div:not(.table-wrapper) > ul {
+  list-style: none; margin: 0; padding: var(--sp-4) var(--sp-5);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--sp-3) var(--sp-6);
+  background: var(--c-surface-2); border: 1px solid var(--c-border); border-radius: var(--r-lg);
+}
+.dk .tab-pane > .page-header:has(> legend) > div:not(.table-wrapper) > ul > li { min-width: 0; overflow-wrap: anywhere; line-height: 30px; }
+.dk .tab-pane > .page-header:has(> legend) > .table-wrapper { min-width: 0; width: auto; float: none; margin: 0; }
+.dk .tab-pane > .page-header:has(> legend) > .table-wrapper .table { table-layout: auto; width: 100%; min-width: 0; }
+.dk .tab-pane > .page-header:has(> legend) > .table-wrapper .table td { white-space: nowrap; }
+.dk .tab-pane > .page-header:has(> legend) > .table-wrapper .table td:nth-child(2):not(:last-child) { white-space: normal; }   /* mailbox owner name may wrap */
+.dk .tab-pane > .page-header:has(> legend) > .table-wrapper .table > thead > tr > th,
+.dk .tab-pane > .page-header:has(> legend) > .table-wrapper .table > tbody > tr > td,
+.dk .tab-pane > .page-header:has(> legend) > .table-wrapper .table > tfoot > tr > th { padding-left: var(--sp-3); padding-right: var(--sp-3); }
+.dk .tab-pane > .page-header:has(> legend) > .table-wrapper .table > * > tr > :first-child { padding-left: var(--sp-5); }
+.dk .tab-pane > .page-header:has(> legend) > .table-wrapper .table tbody tr td:has(> .progress) { width: 26%; min-width: 120px; padding-right: var(--sp-5); }
+
+/* ---------- 22. Responsive ---------- */
+/* Desktop-narrow / tablet: sidebar becomes an off-canvas drawer */
+@media (max-width: 1199px) {
+  :root { --content-x: 0px; }                  /* drawer: the content area is the whole window */
+  /* one drawer holding rail + module menu */
+  .dk-sidebar {
+    width: min(calc(var(--layout-rail-w) + var(--layout-panel-w) + 12px), 92vw);
+    transform: translateX(-100%); visibility: hidden;
+    transition: transform var(--dur) var(--ease), visibility 0s linear var(--dur);
+    box-shadow: var(--shadow-lg);
+  }
+  .dk-nav-open .dk-sidebar { transform: none; visibility: visible; transition: transform var(--dur) var(--ease); }
+  .dk-panel { width: auto; }
+  /* the SAME drawer everywhere (fix round 3): rail + panel. On Home the panel shows the Home list built by danke.js. */
+  .dk-scrim { display: block; position: fixed; inset: 0; z-index: 1025; background: var(--c-overlay); }
+  .dk-scrim[hidden] { display: none; }
+  .dk-main { margin-left: 0; }
+  .dk-icon-btn.dk-nav-close { display: inline-flex; }
+  .dk-topbar-icon { display: block; }                    /* compact brand mark while the navigation is a drawer */
+  .dk-topbar { padding: 0 var(--sp-4); }
+  #content.dk-content { padding: var(--sp-5) var(--sp-5) calc(var(--sp-6) + var(--footer-h)); }
+  .dk-footer-inner { padding: 0 var(--sp-5); }
+}
+/* Phone */
+@media (max-width: 767px) {
+  /* phone: the breadcrumb gets its own line below the top bar */
+  .dk-topbar { gap: var(--sp-2); padding: 0 var(--sp-2); height: auto; min-height: var(--layout-topbar-h); flex-wrap: wrap; row-gap: 0; }
+  .dk-topbar > * { margin-top: 12px; margin-bottom: 12px; }
+  .dk-topbar > .dk-crumbs { order: 10; flex: 0 0 calc(100% + var(--sp-4)); margin: 0 calc(var(--sp-2) * -1); padding: 7px var(--sp-3); border-top: 1px solid var(--c-border); }
+  .dk-topbar > .dk-crumbs:has(ol:empty) { display: none; }
+  .dk-crumbs ol { font-size: var(--fs-xs); }
+  /* phone: the first parts collapse into "…" — "… › record › tab"; a tap on "…" shows the whole path (wrapped) */
+  .dk-crumbs:not(.is-expanded) li.dk-crumb-early { display: none; }
+  .dk-crumbs:not(.is-expanded) li.dk-crumb-more { display: flex; }
+  .dk-crumbs:not(.is-expanded) li.dk-crumb-more::before { content: none; }
+  .dk-crumbs:not(.is-expanded) li.dk-crumb-more ~ li { flex-shrink: 1; }
+  .dk-crumbs:not(.is-expanded) li.dk-crumb-more ~ li:last-child { flex-shrink: .35; }
+  .dk-crumbs.is-expanded ol { flex-wrap: wrap; row-gap: 2px; }
+  .dk-crumbs.is-expanded li { flex-shrink: 1; }
+  #searchform.dk-search { flex: 1 1 0%; min-width: 0; margin-left: 0; }       /* basis 0: stays on the first line */
+  .dk-topbar .dk-search ~ .dk-topbar-actions { margin-left: 0; }
+  .dk-topbar > .dk-topbar-actions { margin-left: auto; flex: 0 0 auto; }
+  .dk-user-name, .dk-user-btn .bi-chevron-down { display: none; }
+  .dk-user-btn { padding: 0 3px; border-color: transparent; }
+  .dk .notification { padding: 0 var(--sp-2); }
+  #content.dk-content { padding: var(--sp-4) var(--sp-3) var(--sp-8); }
+  .dk .page-header h1 { font-size: var(--fs-lg); }
+  .dk .tab-content { padding: var(--sp-4); }
+  .dk .tab-content > .tab-pane > .clear:last-of-type:has(.formbutton-success),
+  .dk .tab-content > .tab-pane > div:last-of-type:has(> .right > .formbutton-success) { margin: var(--sp-4) calc(var(--sp-4) * -1) calc(var(--sp-4) * -1); padding: var(--sp-3) var(--sp-4); }
+  .dk .form-horizontal .form-group > [class*="col-"] { padding-right: 0; }
+  .dk .form-horizontal .control-label { padding-top: 0; margin-bottom: 4px; }
+  .dk .form-horizontal .col-sm-offset-3 { margin-left: 0; }
+  .dk .table > thead > tr > th:first-child, .dk .table > tbody > tr > td:first-child, .dk .table > tfoot > tr > td:first-child { padding-left: var(--sp-3); }
+  .dk .table > thead > tr > th:last-child, .dk .table > tbody > tr > td:last-child, .dk .table > tfoot > tr > td:last-child { padding-right: var(--sp-3); }
+  .dk .table-wrapper .table { min-width: 560px; }
+  .dk-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
+  .dk-tile { padding: var(--sp-3); }
+  .dk-tile-used { font-size: var(--fs-xl); }
+  .dk-status-detail { padding-left: 0; }
+  .dk .input-group > .input-group-field .select2-container { min-width: 0 !important; }   /* select2 copies the inline min-width:170px of the mailbox domain select */
+  .dk .input-group:has(> .input-group-field) > .form-control { flex-basis: 35%; }
+  /* phone: footer NOT pinned (by decision) — end of the page, stacked and centred */
+  :root { --footer-h: 0px; }
+  .dk-footer { position: static; height: auto; flex: 0 0 auto; width: 100%; background: transparent; border-top: 0; padding: 0 var(--sp-3); z-index: auto; }
+  .dk-footer-inner { flex-direction: column; flex-wrap: wrap; justify-content: center; text-align: center; gap: var(--sp-2); height: auto; white-space: normal; overflow: visible;
+    padding: var(--sp-4) 0 var(--sp-5); border-top: 1px solid var(--c-border); }
+  .dk-footer-brand { justify-content: center; }
+  /* M1 (fix round 16): every link of the footer and of the lines below the login card is at least 44px high to the
+     finger; the rows are stacked without a gap, so the text keeps an even rhythm */
+  .dk-footer a, .dk-login-foot a, .dk-login-credit a { display: inline-flex; align-items: center; min-height: 44px; }
+  .dk-footer-inner { gap: 0; padding: var(--sp-2) 0 var(--sp-3); }
+  .dk-footer-brand > span:last-child { white-space: nowrap; }
+  .dk-login-foot { margin-top: var(--sp-3); min-height: 44px; }
+  .dk-login-credit { margin-top: 0; }
+  .dk-logo { height: 40px; }
+  .dk-login-brand .dk-logo { height: 52px; }
+  .dk .codeview pre { max-height: 60vh; font-size: 11px; }
+  .dk-card { padding: var(--sp-4); }
+  .dk-login-card { padding: var(--sp-6) var(--sp-5) var(--sp-5); border-radius: var(--r-lg); }
+  .dk .progress { max-width: none; }
+}
+
+/* Small phone (< 600px): list tables become stacked cards (fix round 3, P5). Core markup is unchanged; danke.js adds
+   .dk-cards to the table, data-label (header text) to the cells, marks the key column (.dk-cell-primary = card
+   title), the action cell and empty cells, and puts a "Filters" button above the table. Tablet/desktop: unchanged. */
+.dk-list-tools { display: none; }
+@media (max-width: 599px) {
+  .dk .table-wrapper:has(> table.dk-cards) { background: transparent; border: 0; border-radius: 0; box-shadow: none; overflow: visible; }
+  .dk .table-wrapper > table.dk-cards, .dk .table-wrapper table.dk-cards { display: block; min-width: 0; width: 100%; }
+  .dk table.dk-cards > caption { display: block; padding: 0 0 var(--sp-2); border: 0; }
+  .dk table.dk-cards > thead, .dk table.dk-cards > tbody, .dk table.dk-cards > tfoot,
+  .dk table.dk-cards > tbody > tr > td, .dk table.dk-cards > tfoot > tr, .dk table.dk-cards > tfoot > tr > td, .dk table.dk-cards > tfoot > tr > th { display: block; }
+  /* header + filter row: hidden until "Filters" is opened, then one card with a labelled field per filter */
+  .dk-list-tools { display: flex; align-items: center; gap: var(--sp-2); margin: 0 0 var(--sp-3); }
+  .dk .dk-list-tools .btn .bi { font-size: 14px; }
+  .dk-filter-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: var(--r-pill); background: var(--c-primary); color: var(--c-text-on-primary); font-size: 11px; }
+  .dk-filter-count:empty { display: none; }
+  .dk table.dk-cards > thead.dark { display: none; }
+  .dk table.dk-cards.dk-filters-open > thead.dark {
+    display: flex; flex-direction: column; margin: 0 0 var(--sp-3); padding: var(--sp-3) var(--sp-4);
+    background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg); box-shadow: var(--shadow-xs);
+  }
+  .dk table.dk-cards > thead.dark > tr { display: block; background: transparent; }
+  .dk table.dk-cards > thead.dark > tr:first-child { order: 2; }
+  .dk table.dk-cards > thead.dark > tr > th { display: none; }
+  .dk table.dk-cards > thead.dark > tr > td, .dk table.dk-cards > thead.dark > tr > th.dk-th-limit {
+    display: block; width: auto; height: auto; padding: 0 0 var(--sp-3) !important; border: 0; background: transparent; text-align: left;
+  }
+  .dk table.dk-cards > thead.dark > tr > td:not(:has(input, select, button, a)) { display: none; }
+  .dk table.dk-cards > thead.dark > tr > td[data-label]::before, .dk table.dk-cards > thead.dark > tr > th.dk-th-limit[data-label]::before {
+    content: attr(data-label); display: block; margin: 0 0 4px; position: static; transform: none; opacity: 1; width: auto; text-align: left;
+    font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: var(--fw-semibold); letter-spacing: .03em; text-transform: uppercase; color: var(--c-text-muted);
+  }
+  .dk table.dk-cards > thead.dark td .form-control, .dk table.dk-cards > thead.dark td select, .dk table.dk-cards > thead.dark .select2-container,
+  .dk table.dk-cards > thead.dark th .select2-container { display: block; width: 100% !important; min-width: 0; }
+  .dk table.dk-cards > thead.dark td .form-control, .dk table.dk-cards > thead.dark .select2-container .select2-choice { height: var(--control-h); line-height: calc(var(--control-h) - 2px); }
+  .dk table.dk-cards > thead.dark input.form-control { line-height: 1.4; }
+  .dk table.dk-cards > thead.dark td:has(> #Filter), .dk table.dk-cards > thead.dark td:has(> .btn) { padding-bottom: var(--sp-3) !important; }
+  .dk table.dk-cards > thead.dark #Filter.btn { width: 100%; height: var(--control-h); min-height: var(--control-h); background: var(--c-primary); border-color: var(--c-primary); color: var(--c-text-on-primary); }
+  .dk table.dk-cards > thead.dark > tr:first-child > th.dk-th-limit { padding-bottom: 0 !important; }
+  /* one card per row */
+  .dk table.dk-cards > tbody > tr {
+    display: flex; flex-direction: column; margin: 0 0 var(--sp-3); padding: var(--sp-3) var(--sp-4);
+    background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg); box-shadow: var(--shadow-xs);
+  }
+  .dk table.dk-cards > tbody > tr:nth-child(even), .dk table.dk-cards > tbody > tr:hover { background: var(--c-surface); }
+  .dk table.dk-cards > tbody > tr > td {
+    display: flow-root; width: auto !important; min-width: 0 !important; max-width: none; padding: 5px 0 5px 40% !important; border: 0;
+    white-space: normal !important; overflow-wrap: anywhere !important; text-align: left; line-height: 1.45; background: transparent;   /* !important: also mono + nowrap columns (long e-mail / host names) wrap inside a card */
+  }
+  .dk table.dk-cards > tbody > tr > td[data-label]::before {
+    content: attr(data-label); float: left; width: 62%; margin-left: -66.67%; padding-top: 1px;
+    font-size: var(--fs-xs); font-weight: var(--fw-semibold); letter-spacing: .03em; text-transform: uppercase; color: var(--c-text-subtle);
+    font-family: var(--font-sans); overflow-wrap: break-word;
+  }
+  .dk table.dk-cards > tbody > tr > td:not([data-label]) { padding-left: 0 !important; }
+  .dk table.dk-cards > tbody > tr > td.dk-cell-empty { display: none; }
+  .dk table.dk-cards > tbody > tr > td.dk-cell-primary {
+    order: -1; padding: 0 0 var(--sp-2) !important; margin: 0 0 var(--sp-1); border-bottom: 1px solid var(--c-border);
+    font-size: var(--fs-md); font-weight: var(--fw-semibold); line-height: 1.35; color: var(--c-text);
+  }
+  .dk table.dk-cards > tbody > tr > td.dk-cell-primary::before { content: none; }
+  .dk table.dk-cards > tbody > tr > td.dk-cell-primary a:not(.btn) { color: var(--c-link); font-weight: inherit; }
+  .dk table.dk-cards > tbody > tr > td.dk-cell-actions {
+    order: 99; display: flex; justify-content: flex-end; gap: var(--sp-1); margin: var(--sp-1) 0 0; padding: var(--sp-2) 0 0 !important; border-top: 1px solid var(--c-border);
+  }
+  .dk table.dk-cards > tbody > tr > td.dk-cell-actions::before { content: none; }
+  .dk table.dk-cards > tbody > tr > td.dk-cell-actions .btn.formbutton-narrow { width: 36px; min-width: 36px; min-height: 36px; }
+  .dk table.dk-cards > tbody > tr > td:has(> .progress) { padding-right: 0 !important; }
+  .dk table.dk-cards > tbody > tr.tbl_row_noresults { display: block; }
+  .dk table.dk-cards > tbody > tr.tbl_row_noresults > td { padding: var(--sp-6) var(--sp-3) !important; text-align: center; }
+  .dk table.dk-cards > tfoot > tr > td, .dk table.dk-cards > tfoot > tr > th { padding: var(--sp-1) 0 !important; border: 0; background: transparent; text-align: center; }
+  .dk table.dk-cards > tfoot > tr > th:empty, .dk table.dk-cards > tfoot > tr > td:empty { display: none; }
+  /* quota tables (dashboard, Client → Info): the total line reads "Total … value" */
+  .dk table.dk-cards > tfoot > tr:has(> th) { display: flex; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-2) var(--sp-4); }
+}
+
+/* ---------- 24. Monitor module (CSS only — no monitor template is overridden) ---------- */
+/* Data Log History record (dataloghistory_view.htm): field | old | new. The only list-like table whose header
+   cells carry a width and no sort column → fixed columns (25% + equal shares), long values (certificates, session
+   ids, directive diffs) wrap inside their cell instead of squeezing "old" to a few pixels. */
+.dk .table-wrapper > .table:has(> thead > tr > th[width]:first-child:not([data-column])) { table-layout: fixed; }
+.dk .table-wrapper > .table:has(> thead > tr > th[width]:first-child:not([data-column])) td { overflow-wrap: anywhere; }
+.dk .table td > .alert { margin: 0 0 var(--sp-2); }
+.dk .table td > .finediff { white-space: pre-wrap; overflow-wrap: anywhere; }
+.dk .table td > h3 { margin: 0; font-size: var(--fs-md); color: var(--c-text-muted); }
+/* refresh selector: a compact toolbar instead of a full-width field */
+#pageContent > legend { margin: 0 0 6px; padding: 0; border: 0; font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--c-text-muted); }
+.dk .form-group:has(> div > #refreshinterval), .dk .form-group:has(#s2id_refreshinterval) { max-width: 300px; margin-bottom: var(--sp-5); }
+.dk .form-group:has(#refreshinterval) > .col-sm-12 { padding: 0; }
+/* "Data from: <time>" caption (p.fieldset-legend is hidden elsewhere, like in the default theme) */
+.dk .pnl_formarea:has(> .systemmonitor, > .codeview) > p.fieldset-legend { display: block; margin: 0 0 var(--sp-2); font-size: var(--fs-xs); color: var(--c-text-subtle); }
+.dk .pnl_formarea > p.fieldset-legend:empty { display: none; }
+/* server state cards (alerts printed by show_sys_state.php) */
+.dk .stateview .alert { display: block; position: relative; padding: var(--sp-4) var(--sp-5) var(--sp-4) calc(var(--sp-5) + 30px); margin-bottom: var(--sp-3); border-radius: var(--r-lg); }
+.dk .stateview .alert::before { position: absolute; left: var(--sp-5); top: var(--sp-4); font-size: 19px; }
+.dk .stateview .alert h3 { margin: 0 0 4px; font-size: var(--fs-md); line-height: 1.35; color: var(--c-text); display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); overflow-wrap: anywhere; }
+.dk .stateview .alert p { margin: 0 0 4px; color: var(--c-text-muted); }
+.dk .stateview .alert strong { color: var(--c-text); }
+.dk .stateview .alert .statusDevice > div:empty, .dk .stateview .icoDevice { display: none; }
+/* chart area → card */
+.dk .pnl_formarea:has(> div > canvas), .dk-chart-card {
+  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg); box-shadow: var(--shadow-xs);
+  padding: var(--sp-5); margin: var(--sp-5) 0;
+}
+.dk .pnl_formarea:has(> div > canvas) > p.fieldset-legend { display: block; margin: 0 0 var(--sp-3); font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--c-text); }
+/* data pages (services, load, disk, memory, updates, mail queue …): one card around the output */
+.dk .systemmonitor { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg); box-shadow: var(--shadow-xs); overflow: hidden; margin-bottom: var(--sp-5); }
+.dk .systemmonitor > p { margin: 0; padding: var(--sp-5); color: var(--c-text-muted); }
+.dk .systemmonitor .systemmonitor-state { border-radius: 0; }
+.dk .systemmonitor .systemmonitor-content { overflow-x: auto; }
+.dk .systemmonitor .systemmonitor-content:not(:has(> table)) { padding: var(--sp-4) var(--sp-5); font-family: var(--font-mono); font-size: 12px; line-height: 1.6; white-space: nowrap; }
+.dk .systemmonitor > div[style*="padding"] { padding: 0 !important; }
+/* Monitor data tables (tools_monitor.inc.php prints them straight into .systemmonitor-content, no .table-wrapper):
+   columns sized by their content — never ispconfig.css' fixed layout with percentage columns (fix round 6, U6).
+   Too wide for the card (phones) → the table scrolls sideways inside .systemmonitor-content. */
+.dk .systemmonitor table { table-layout: auto; width: 100%; margin: 0; border-collapse: separate; border-spacing: 0; font-size: var(--fs-sm); color: var(--c-text); }
+.dk .systemmonitor table > thead > tr > th, .dk .systemmonitor table > thead > tr > th.tiny-col, .dk .systemmonitor table > thead > tr > th.small-col {
+  width: auto; white-space: nowrap; overflow: visible; text-overflow: clip;
+}
+.dk .systemmonitor table > tbody > tr > td { overflow-wrap: break-word; word-break: normal; }
+.dk .systemmonitor .table > tbody > tr:first-child > td { border-top: 0; }
+/* a) key / value tables (services, memory, CPU, load): no header row */
+.dk .systemmonitor table:not(:has(> thead)) td:first-child { font-weight: var(--fw-medium); width: 34%; min-width: 11ch; }
+.dk .systemmonitor table:not(:has(> thead)) td:last-child { overflow-wrap: anywhere; }            /* CPU flags: one very long value */
+.dk .systemmonitor table:not(.table) td { padding: 10px var(--sp-3); border-top: 1px solid var(--c-border); vertical-align: middle; line-height: 1.4; }   /* server load: a bare <table> */
+.dk .systemmonitor table:not(.table) td:first-child { padding-left: var(--sp-5); }
+.dk .systemmonitor table:not(.table) td:last-child { padding-right: var(--sp-5); }
+.dk .systemmonitor table:not(.table) tr:first-child > td { border-top: 0; }
+.dk .systemmonitor table:not(.table) tr:nth-child(even) { background: var(--c-row-alt); }
+.dk .systemmonitor table:not(.table) tr:hover { background: var(--c-row-hover); }
+/* b) data tables with a header row (disk usage, database size): values in mono; the columns ISPConfig marks as
+      narrow (th.tiny-col = sizes, percentages) are numbers → right-aligned, never wrapped. The first column (device
+      path, NFS export, database name) may break anywhere when space is short; other values are never broken inside a
+      word — if the table is then wider than the card it scrolls inside .systemmonitor-content. */
+.dk .systemmonitor table:has(> thead) > tbody > tr > td { font-family: var(--font-mono); font-size: .96em; font-weight: 500; overflow-wrap: break-word; }
+.dk .systemmonitor table:has(> thead) > tbody > tr > td:first-child { min-width: 18ch; overflow-wrap: anywhere; }
+.dk .systemmonitor table:has(> thead > tr > th.small-col:nth-child(2)) > tbody > tr > td:nth-child(2) { white-space: nowrap; }
+.dk .systemmonitor table:has(> thead > tr > th.tiny-col:nth-child(2)) > * > tr > :nth-child(2),
+.dk .systemmonitor table:has(> thead > tr > th.tiny-col:nth-child(3)) > * > tr > :nth-child(3),
+.dk .systemmonitor table:has(> thead > tr > th.tiny-col:nth-child(4)) > * > tr > :nth-child(4),
+.dk .systemmonitor table:has(> thead > tr > th.tiny-col:nth-child(5)) > * > tr > :nth-child(5),
+.dk .systemmonitor table:has(> thead > tr > th.tiny-col:nth-child(6)) > * > tr > :nth-child(6) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.dk .systemmonitor pre { margin: 0; border: 0; border-radius: 0; background: transparent; padding: var(--sp-4) var(--sp-5); overflow-x: auto; white-space: pre; font-size: 12px; line-height: 1.6; }
+/* service state as badges */
+.dk .systemmonitor-state .online, .dk .systemmonitor-state .offline {
+  display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: var(--r-pill);
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold); line-height: 1.5; white-space: nowrap;
+}
+.dk .systemmonitor-state .online { background: var(--c-success-soft); color: var(--c-success); }
+.dk .systemmonitor-state .offline { background: var(--c-danger-soft); color: var(--c-danger); }
+.dk .systemmonitor-state .online::before, .dk .systemmonitor-state .offline::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+/* logs: monospace, scroll inside the card in both directions — long lines never run off the page */
+.dk .codeview { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg); box-shadow: var(--shadow-xs); overflow: hidden; margin-bottom: var(--sp-5); }
+.dk .codeview pre {
+  margin: 0; padding: var(--sp-4) var(--sp-5); border: 0; border-radius: 0; background: transparent; color: var(--c-text);
+  font-family: var(--font-mono); font-size: 12px; line-height: 1.65; tab-size: 4;
+  white-space: pre; word-break: normal; overflow-wrap: normal; overflow: auto; max-height: 70vh;
+  scrollbar-width: thin; scrollbar-color: var(--c-surface-3) transparent;
+}
+
+/* ---------- 25. Fix round 7 (r8) ---------- */
+/* V7 — the top-bar button: "Menu" (hamburger) while the navigation is a drawer, panel icon on desktop where it
+   collapses / expands the module panel. Same breakpoint as the drawer (1200px); label + aria-expanded by danke.js. */
+.dk-nav-toggle .dk-nav-icon-menu { display: none; font-size: 22px; }
+@media (max-width: 1199px) {
+  .dk-nav-toggle .dk-nav-icon-menu { display: inline-block; }
+  .dk-nav-toggle .dk-nav-icon-panel { display: none; }
+}
+/* V2 — "Server to Monitor" (select2 inside the module menu): the menu-link rule (#sidebar li a: padding 5px, muted
+   colour, hover background) also hit select2's <a class="select2-choice">, so the text sat 5px low in its box.
+   Same box as every other select. */
+#sidebar .select2-container .select2-choice, #sidebar .select2-container .select2-choice:hover {
+  display: block; margin: 0; padding: 0 30px 0 var(--sp-3); height: var(--control-h); line-height: calc(var(--control-h) - 2px);
+  color: var(--c-text); background: var(--c-surface) none; border-radius: var(--r-md); font-weight: var(--fw-regular);
+}
+#sidebar .select2-container .select2-choice > .select2-chosen { line-height: inherit; }
+#sidebar .select2-dropdown-open .select2-choice { border-radius: var(--r-md) var(--r-md) 0 0; }
+#sidebar .select2-dropdown-open.select2-drop-above .select2-choice { border-radius: 0 0 var(--r-md) var(--r-md); }
+/* V5 — limit tiles: every tile has the same three bands, so tiles in a row line up whatever wraps:
+   label band = always two label lines high · value starts right below it · meter + % pinned to the tile bottom. */
+.dk-tile-top { min-height: calc(2 * 1.3 * var(--fs-sm)); }
+.dk-tile-value { margin-top: 0; }
+.dk-tile-value + .dk-meter { margin-top: auto; }
+/* V1 — charts on phones: danke.js switches the core charts (canvas height="30" = 10:1) to "fill the box" below 768px;
+   this is the box (200px = legend + a plot of about 150px). From 768px up nothing changes. */
+@media (max-width: 767px) {
+  .dk .dk-chart-box { position: relative; height: 200px; padding-bottom: 10px; box-sizing: border-box; }
+  .dk .dk-chart-box > canvas { max-width: 100%; }
+}
+
+/* ---------- 26. Fix round 8 (r9): focus, login flow, confirmation pages, DNS records ---------- */
+
+/* L1 — one focus treatment for every field (login, forms, select2, search): the 1px border takes the focus colour
+   (≥ 3:1 against the field, tools/contrast-check.mjs) and a SOFT 3px halo follows the border directly — no gap, no
+   second line. The halo strength is the --c-focus-ring token (tokens.css: 18% light, 20% dark; it was 35% / 45% and
+   read as a second, heavier border). The rules themselves are in §8 (.form-control:focus), §6 (#searchform) and
+   §12 (select2); buttons, links and checkboxes keep the 2px outline of §1 (:focus-visible). */
+
+/* L4 — browser autofill: Chrome / Safari paint their own (yellow / white / pale blue) background and text colour.
+   The field keeps the theme's surface and text in both modes; the fill colour is painted with an inset shadow
+   because the autofill background itself cannot be overridden. Border, size and font are untouched → nothing
+   moves when the browser fills the fields. */
+.dk input:-webkit-autofill, .dk input:-webkit-autofill:hover, .dk input:-webkit-autofill:focus,
+.dk textarea:-webkit-autofill, .dk select:-webkit-autofill {
+  -webkit-text-fill-color: var(--c-text); caret-color: var(--c-text);
+  -webkit-box-shadow: 0 0 0 1000px var(--c-surface) inset; box-shadow: 0 0 0 1000px var(--c-surface) inset;
+  transition: background-color 600000s 0s, color 600000s 0s;
+}
+.dk input.form-control:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--c-surface) inset, 0 0 0 3px var(--c-focus-ring);
+  box-shadow: 0 0 0 1000px var(--c-surface) inset, 0 0 0 3px var(--c-focus-ring);
+}
+.dk input:autofill, .dk textarea:autofill, .dk select:autofill {
+  -webkit-text-fill-color: var(--c-text); caret-color: var(--c-text);
+  box-shadow: 0 0 0 1000px var(--c-surface) inset;
+}
+.dk input.form-control:autofill:focus { box-shadow: 0 0 0 1000px var(--c-surface) inset, 0 0 0 3px var(--c-focus-ring); }
+
+/* L3 — the rest of the login flow (password_reset.htm, otp.htm, force_password_change.htm) in the same card.
+   Those core templates print their own heading (h2) + text: they take the place of the card's generic heading.
+   Messages (alert-danger / alert-success) always sit between the heading and the form. */
+.dk-login-body { display: flex; flex-direction: column; }
+.dk-login-body > * { order: 4; }
+.dk-login-body > h2 { order: 1; }
+.dk-login-body > h2 + p { order: 2; }
+.dk-login-body > .alert { order: 3; }
+.dk-login-card:has(.dk-login-body > h2) .dk-login-title,
+.dk-login-card:has(.dk-login-body > h2) .dk-login-sub { display: none; }
+.dk .dk-login-body > h2 { margin: 0 0 var(--sp-1); font-size: var(--fs-xl); font-weight: var(--fw-semibold); line-height: var(--lh-tight); color: var(--c-text); }
+.dk-login-body > h2 + p { margin: 0 0 var(--sp-6); color: var(--c-text-muted); font-size: var(--fs-sm); }
+.dk-login-body .alert { margin: 0 0 var(--sp-5); }
+.dk-login-body .form-group > label, .dk-login-body .form-group > label.control-label {
+  display: block; float: none; width: auto; margin: 0 0 6px; padding: 0; text-align: left;
+  font-size: var(--fs-sm); font-weight: var(--fw-medium); color: var(--c-text);
+}
+/* new password + "Generate password": one row, same height, the button never squeezes the field below 150px */
+.dk-login-body .input-group { display: flex; width: 100%; }
+.dk-login-body .input-group > .form-control { flex: 1 1 150px; min-width: 0; float: none; width: auto; }
+.dk-login-body .input-group > .input-group-btn { flex: 0 0 auto; width: auto; display: flex; }
+.dk-login-body .input-group-btn > .btn { height: 42px; padding: 0 var(--sp-3); margin: 0 0 0 -1px; font-size: var(--fs-sm); white-space: nowrap; }
+@media (max-width: 420px) {
+  .dk-login-body .input-group { flex-wrap: wrap; gap: var(--sp-2); }
+  .dk-login-body .input-group > .form-control { flex-basis: 100%; border-radius: var(--r-md) !important; }
+  .dk-login-body .input-group > .input-group-btn { flex: 1 1 100%; }
+  .dk-login-body .input-group-btn > .btn { width: 100%; margin: 0; border-radius: var(--r-md) !important; }
+}
+/* password strength: bar and text on one line under the label */
+.dk-login-body .form-group > .checkbox { display: flex; align-items: center; gap: var(--sp-3); min-height: 20px; margin: 0; padding: 0; }
+.dk-login-body #passBar { flex: 0 0 100px; float: none; margin: 0; }
+.dk-login-body #passText { float: none; margin: 0; }
+.dk-login-body .form-group:has(> .confirmpassworderror) { margin: 0; min-height: 0; }
+.dk-login-body .confirmpassworderror, .dk-login-body .confirmpasswordok { margin-bottom: var(--sp-3); }
+/* OTP: "code sent to …" + "Request new code" under the button (danke.js wraps core's loose text into .dk-login-note) */
+.dk-login-note { display: block; margin: var(--sp-5) 0 0; text-align: center; font-size: var(--fs-sm); color: var(--c-text-muted); }
+.dk-login-body fieldset > br { display: none; }
+.dk-login-body fieldset > a { display: block; width: -moz-fit-content; width: fit-content; margin: var(--sp-4) auto 0; padding: 2px var(--sp-1); font-size: var(--fs-sm); font-weight: var(--fw-medium); }
+.dk-login-note + a, .dk-login-note + br + a { margin-top: var(--sp-1) !important; }
+/* the secondary action ("Password lost", "Back") is a button that looks like a link: clear keyboard focus */
+.dk-login-body .right .btn.formbutton-default:not([type="submit"]):focus-visible { outline: 2px solid var(--c-focus); outline-offset: 0; text-decoration: underline; }
+/* Caps Lock hint under a password field (danke.js; takes no room while hidden → nothing jumps when it is off) */
+.dk-caps-hint { display: flex; align-items: center; gap: 6px; margin: 6px 0 0; font-size: var(--fs-xs); color: var(--c-warning); }
+.dk-caps-hint[hidden] { display: none; }
+/* L4 — tablets (768–1199px): a little more room in and around the card */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .dk-login-card { max-width: 460px; padding: var(--sp-10) var(--sp-10) var(--sp-8); }
+  .dk-login-main { padding-top: var(--sp-8); }
+}
+
+/* M1 (fix round 16) — phones: the card and the lines below it fit a 360 × 640 screen without scrolling. Nothing is
+   pinned to the bottom edge (the lines are the end of the page), so an on-screen keyboard never covers a pinned line
+   or pushes one over the form. Less air around and inside the card; the fields and buttons keep their 42px. */
+@media (max-width: 479px) {
+  .dk-login-topbar { padding: var(--sp-1) var(--sp-2) 0; }
+  .dk-login-main { padding: var(--sp-1) var(--sp-3) var(--sp-2); }
+  .dk-login-card { padding: var(--sp-4) var(--sp-5); border-radius: var(--r-lg); }
+  .dk-login-brand { margin-bottom: var(--sp-3); }
+  .dk-login-brand .dk-logo { height: 40px; }
+  .dk .dk-login-title, .dk .dk-login-body > h2 { font-size: var(--fs-lg); }   /* the heading core prints on the other login pages keeps the same size */
+  .dk-login-body > h2 + p { margin-bottom: var(--sp-4); }
+  .dk-login-sub { margin-bottom: var(--sp-4); }
+  .dk-login-body .form-group { margin-bottom: var(--sp-3); }
+  .dk-login-body .right { margin-top: var(--sp-3); gap: var(--sp-1); }
+  .dk-login-foot { margin-top: var(--sp-1); }
+}
+/* … and on a short phone screen the sub-line under the title gives way (the title says what the page is) */
+@media (max-width: 479px) and (max-height: 700px) {
+  .dk-login-sub { display: none; }
+  .dk .dk-login-title { margin-bottom: var(--sp-3); }
+}
+
+/* A1 — confirmation pages printed by core as loose text + two buttons ("login as", "re-login as admin / logout":
+   login/login_as.php, login/logout.php). danke.js puts the same nodes into .dk-confirm; this is the card. */
+.dk-confirm {
+  max-width: 560px; margin: var(--sp-10) auto var(--sp-6); padding: var(--sp-8);
+  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+.dk-confirm-icon {
+  display: inline-grid; place-content: center; width: 48px; height: 48px; margin: 0 0 var(--sp-4);
+  border-radius: 50%; background: var(--c-primary-soft); color: var(--c-primary-soft-text); font-size: 22px;
+}
+.dk .dk-confirm-title { margin: 0; font-size: var(--fs-lg); font-weight: var(--fw-semibold); line-height: 1.35; color: var(--c-text); overflow-wrap: anywhere; }
+.dk-confirm-text { margin: var(--sp-2) 0 0; color: var(--c-text-muted); font-size: var(--fs-base); line-height: var(--lh-base); }
+.dk-confirm .wf_actions {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-3);
+  float: none; margin: var(--sp-6) 0 0; padding: 0; border: 0; background: none;
+}
+.dk-confirm .wf_actions .btn { margin: 0; min-height: 40px; padding-left: var(--sp-5); padding-right: var(--sp-5); }
+@media (max-width: 599px) {
+  .dk-confirm { margin-top: var(--sp-5); padding: var(--sp-6) var(--sp-5); }
+  .dk-confirm .wf_actions { flex-direction: column; }
+  .dk-confirm .wf_actions .btn { width: 100%; min-height: 44px; }
+}
+
+/* D1 — "The following changes are not yet populated to all servers" (core prints it as .systemmonitor-state.state-info
+   above lists and above the DNS record buttons): one info banner with the look of the theme's alerts, with room
+   above and below. Recognised by the notice's own markup (.status + .statusMsg): the Monitor module's state
+   blocks (tools_monitor / show_sys_state: no empty .status element in front of the message) are not touched. */
+.dk .systemmonitor-state.state-info:has(> .status + .statusMsg) {
+  display: flex; align-items: flex-start; gap: var(--sp-3);
+  margin: var(--sp-1) 0 var(--sp-5); padding: var(--sp-3) var(--sp-4);
+  color: var(--c-info); background: var(--c-info-soft);
+  border: 1px solid color-mix(in srgb, var(--c-info) 25%, transparent); border-radius: var(--r-md);
+  font-size: var(--fs-sm); line-height: 1.5;
+}
+.dk .systemmonitor-state.state-info:has(> .status + .statusMsg)::before { content: "\f431"; font-family: "bootstrap-icons"; font-size: 17px; line-height: 1.3; flex: 0 0 auto; }
+.dk .systemmonitor-state.state-info:has(> .status + .statusMsg) > .status { display: none; }
+.dk .systemmonitor-state.state-info:has(> .status + .statusMsg) > .statusMsg { display: block; flex: 1 1 auto; min-width: 0; margin: 0; padding: 0; }
+.dk .systemmonitor-state.state-info:has(> .status + .statusMsg) .statusMsg ul { margin: var(--sp-1) 0; padding-left: var(--sp-5); }
+
+/* D2 — DNS records: "Add record" toolbar instead of a wall of 21 buttons. danke.js regroups core's own buttons
+   (.dns-record-btn, same data-load-content): common types stay visible, the others move into the "More" menu;
+   below 600px one select lists every type. Without JS the r2 chip row above stays as it is. */
+.dk .buttons.topbuttons.dk-dns-toolbar { align-items: center; gap: var(--sp-2); margin: 0 0 var(--sp-5); }
+.dk-dns-toolbar-label { margin-right: var(--sp-1); font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-text); white-space: nowrap; }
+.dk .dk-dns-toolbar .btn.dns-record-btn { min-height: 32px; padding: 0 var(--sp-3); }
+.dk-dns-more { position: relative; display: inline-flex; }
+.dk .dk-dns-toolbar .btn.dk-dns-more-btn {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; margin: 0; padding: 0 var(--sp-3);
+  background: var(--c-surface); color: var(--c-text); border-color: var(--c-border-strong);
+  font-size: var(--fs-sm); font-weight: var(--fw-medium);
+}
+.dk .dk-dns-toolbar .btn.dk-dns-more-btn:hover, .dk .dk-dns-toolbar .btn.dk-dns-more-btn[aria-expanded="true"] { background: var(--c-surface-2); border-color: var(--c-text-subtle); }
+.dk-dns-more-btn .bi { font-size: 11px; transition: transform var(--dur-fast) var(--ease); }
+.dk-dns-more-btn[aria-expanded="true"] .bi { transform: rotate(180deg); }
+.dk-dns-more-menu {
+  position: absolute; z-index: 30; top: calc(100% + 4px); left: 0;
+  display: grid; grid-template-columns: repeat(2, minmax(104px, 1fr)); gap: 2px; padding: 6px;
+  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-md); box-shadow: var(--shadow-md);
+}
+.dk-dns-more-menu[hidden] { display: none; }
+.dk-dns-more-menu.dk-align-right { left: auto; right: 0; }
+.dk .dk-dns-toolbar .dk-dns-more-menu .btn.dns-record-btn {
+  display: flex; align-items: center; justify-content: flex-start; gap: var(--sp-2); width: 100%; min-height: 32px;
+  padding: 0 var(--sp-3); margin: 0; background: transparent; border-color: transparent; border-radius: var(--r-sm);
+  color: var(--c-text); text-align: left;
+}
+.dk .dk-dns-toolbar .dk-dns-more-menu .btn.dns-record-btn::before { color: var(--c-link); }
+.dk .dk-dns-toolbar .dk-dns-more-menu .btn.dns-record-btn:hover,
+.dk .dk-dns-toolbar .dk-dns-more-menu .btn.dns-record-btn:focus { background: var(--c-primary-soft); color: var(--c-primary-soft-text); border-color: transparent; }
+.dk .dk-dns-toolbar .dk-dns-more-menu .btn.dns-record-btn:focus-visible { outline: 2px solid var(--c-focus); outline-offset: -2px; box-shadow: none; }
+.dk .dk-dns-toolbar select.dk-dns-add-select { display: none; }
+@media (max-width: 599px) {
+  .dk .dk-dns-toolbar > .dns-record-btn, .dk-dns-toolbar > .dk-dns-more, .dk-dns-toolbar > .dk-dns-toolbar-label { display: none; }
+  .dk .dk-dns-toolbar select.dk-dns-add-select { display: block; width: 100%; height: 42px; font-size: var(--fs-base); font-weight: var(--fw-medium); }
+}
+
+/* ---------- 23. Motion / print ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .dk *, .dk *::before, .dk *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+}
+@media print {
+  .dk-sidebar, .dk-topbar, .dk-footer, .dk-scrim { display: none !important; }
+  .dk-main { margin: 0 !important; }
+}
+
+/* ---------------------------------------------------------------------------------------------------------
+   27. Fix round 9 — password reset messages (P1)
+   Core prints every "msg" of login/templates/password_reset.htm as alert-success. On that page a msg is only ever
+   the neutral answer or "please enter …" (also sent for the user name "admin"): never a confirmation → the info
+   look, already without JavaScript. danke.js then sets the real class by the text (data-dk-msg = language key).
+   --------------------------------------------------------------------------------------------------------- */
+.dk .dk-login-body:has(> form[action$="password_reset.php"]) > .alert-success:not([data-dk-msg]) {
+  color: var(--c-info); background: var(--c-info-soft); border-color: color-mix(in srgb, var(--c-info) 25%, transparent);
+}
+.dk .dk-login-body:has(> form[action$="password_reset.php"]) > .alert-success:not([data-dk-msg])::before { content: "\f431"; }
+/* inline field messages of the password reset form (empty / not an e-mail address: the form is not sent) */
+.dk-login-body .dk-field-error {
+  display: flex; align-items: flex-start; gap: 6px; margin: 6px 0 0;
+  font-size: var(--fs-sm); line-height: 1.4; font-weight: var(--fw-medium); color: var(--c-danger);
+}
+.dk-login-body .dk-field-error::before { font-family: "bootstrap-icons"; content: "\f333"; font-weight: 400; line-height: 1.4; flex: 0 0 auto; }
+.dk .dk-login-body .form-control[aria-invalid="true"] { border-color: var(--c-danger); }
+.dk .dk-login-body .form-control[aria-invalid="true"]:focus { border-color: var(--c-danger); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-danger) 18%, transparent); }

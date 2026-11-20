@@ -1,0 +1,34 @@
+<!-- "limits" dashlet as resource tiles with usage meters.
+     Same variables as web/dashboard/dashlets/templates/limits.htm (rows: field, field_txt, usage, value, percentage, progressbar). -->
+<div class='dk-card dk-limits' data-dk-limits>
+	<div class='dk-card-head'>
+		<h2 class='dk-card-title'>{tmpl_var name='limits_txt'}</h2>
+		<button type='button' class='btn btn-default btn-sm dk-limits-toggle' data-dk-limits-toggle aria-expanded='false' hidden>
+			<span class='dk-when-collapsed' data-dk-i18n='limits.showall'>Show all limits</span>
+			<span class='dk-when-expanded' data-dk-i18n='limits.showkey'>Show main resources</span>
+		</button>
+	</div>
+	<ul class='dk-tiles'>
+	<tmpl_loop name='rows'>
+		<li class='dk-tile {tmpl_if name="progressbar" op="!=" value="-1"}{tmpl_if name="progressbar" op="<" value="50"}is-ok{tmpl_elseif name="progressbar" op="<" value="75"}is-warn{tmpl_else}is-full{/tmpl_if}{tmpl_else}is-unlimited{/tmpl_if}' data-field='{tmpl_var name="field"}'>
+			<div class='dk-tile-top'>
+				<span class='dk-tile-icon' aria-hidden='true'></span>
+				<span class='dk-tile-label'>{tmpl_var name='field_txt'}</span>
+			</div>
+			<div class='dk-tile-value'>
+				<span class='dk-tile-used'>{tmpl_var name='usage'}</span>
+				<span class='dk-tile-of'>{tmpl_var name='of_txt'} {tmpl_var name='value'}</span>
+			</div>
+			{tmpl_if name="progressbar" op="!=" value="-1"}
+			<div class='dk-meter' role='progressbar' aria-valuemin='0' aria-valuemax='100' aria-valuenow='{tmpl_var name="progressbar"}' aria-label='{tmpl_var name="field_txt"}: {tmpl_var name="usage"} {tmpl_var name="of_txt"} {tmpl_var name="value"}'>
+				<span class='dk-meter-fill' style='width:{tmpl_var name="progressbar"}%'></span>
+			</div>
+			<div class='dk-tile-pct'>{tmpl_var name="percentage"}%</div>
+			{tmpl_else}
+			<div class='dk-meter dk-meter--empty' aria-hidden='true'><span class='dk-meter-fill'></span></div>
+			<div class='dk-tile-pct'>&nbsp;</div>
+			{/tmpl_if}
+		</li>
+	</tmpl_loop>
+	</ul>
+</div>

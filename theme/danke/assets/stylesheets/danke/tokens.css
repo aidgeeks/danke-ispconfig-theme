@@ -1,0 +1,179 @@
+/* ==========================================================================
+   Danke — design tokens (single source of truth)
+   Every colour, size, radius, shadow and font used by danke.css lives here;
+   the raw BRAND palette they refer to is in assets/brand/brand.css.
+   Light is the default; dark overrides the semantic tokens only.
+   Contrast ratios (WCAG 2.1) are checked by tools/contrast-check.mjs.
+   ========================================================================== */
+
+:root {
+  /* ---- Brand palette: lives in assets/brand/brand.css (loaded before this file) ---- */
+
+  /* ---- Semantic colours: surfaces ---- */
+  --c-bg:                  #F4F7F9;   /* page background */
+  --c-surface:             #FFFFFF;   /* cards, tables, inputs */
+  --c-surface-2:           var(--dk-mist);  /* table header, subtle fills */
+  --c-surface-3:           #DCE5EB;   /* hover on surface-2, meter track */
+  --c-row-alt:             #F0F4F8;   /* list tables: every second row (zebra) */
+  --c-row-hover:           #DFEBF6;   /* list tables: row under the pointer */
+  --c-sidebar:             #FFFFFF;
+  --c-topbar:              #FFFFFF;
+  --c-search-bg:           var(--dk-mist);   /* global search field in the top bar (filled field) */
+  --c-search-border:       transparent;
+  /* icon rail (modules): dark in both modes */
+  --c-rail:                var(--dk-navy-900);
+  --c-rail-border:         var(--dk-navy-900);
+  --c-rail-text:           #B9C6D6;   /* 9.5:1 on rail */
+  --c-rail-text-strong:    #FFFFFF;
+  --c-rail-hover:          var(--dk-navy-800);
+  --c-rail-active:         var(--dk-brand-blue);   /* white label 5.3:1 */
+  --c-rail-focus:          #9CCBF5;
+  --c-overlay:             rgba(11, 22, 40, .45);
+
+  /* ---- Semantic colours: text ---- */
+  --c-text:                var(--dk-ink);    /* 16.1:1 on surface */
+  --c-text-muted:          var(--dk-slate);  /* 8.4:1 on surface, 7.3:1 on surface-2 */
+  --c-text-subtle:         #5F6A73;   /* 5.5:1 — hints, captions */
+  --c-text-on-primary:     #FFFFFF;   /* 5.3:1 on primary */
+  --c-link:                var(--dk-brand-blue);      /* 5.3:1 */
+  --c-link-hover:          var(--dk-brand-blue-700);  /* 8.6:1 */
+
+  /* ---- Semantic colours: lines ---- */
+  --c-border:              #D5DEE5;   /* decorative dividers */
+  --c-border-strong:       #8795A1;   /* form control outline, 3.2:1 vs surface (non-text UI ≥3:1) */
+  --c-focus:               #1F6FAF;
+  --c-focus-ring:          rgba(31, 111, 175, .18);   /* soft halo around a focused field / behind the focus outline — never a second line (r9) */
+
+  /* ---- Semantic colours: brand roles ---- */
+  --c-primary:             var(--dk-brand-blue);
+  --c-primary-hover:       var(--dk-brand-blue-600);
+  --c-primary-active:      var(--dk-brand-blue-700);
+  --c-primary-soft:        #E3EEF8;   /* selected nav item bg */
+  --c-primary-soft-text:   var(--dk-brand-blue-700);
+  --c-accent:              var(--dk-brand-teal);      /* decorative only (meters, marks) */
+  --c-accent-text:         var(--dk-brand-teal-700);  /* 5.6:1 */
+  --c-accent-soft:         #E2F4F1;
+
+  /* ---- Semantic colours: status (text on its soft background is ≥4.5:1) ---- */
+  --c-success:             #1D7A46;
+  --c-success-soft:        #E8F6EE;
+  --c-warning:             #8A5300;
+  --c-warning-soft:        #FFF5E0;
+  --c-warning-solid:       #E09B1F;   /* meter fill */
+  --c-danger:              #B42318;
+  --c-danger-soft:         #FEF0EE;
+  --c-danger-hover:        #962018;
+  --c-danger-solid:        #B42318;   /* danger button bg (white text 6.6:1) */
+  --c-info:                var(--dk-brand-blue-700);
+  --c-info-soft:           #E3EEF8;
+  --c-neutral-soft:        #EEF1F4;
+
+  /* ---- Typography ---- */
+  --font-sans:  "Inter", "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono:  "JetBrains Mono", "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --fs-xs:   12px;   /* badges, captions */
+  --fs-sm:   13px;   /* table cells, sidebar items, labels */
+  --fs-base: 14px;   /* body */
+  --fs-md:   16px;   /* card titles */
+  --fs-lg:   18px;   /* section titles */
+  --fs-xl:   22px;   /* page title */
+  --fs-2xl:  28px;   /* tile numbers, login heading */
+  --lh-tight: 1.25;
+  --lh-base:  1.5;
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-semibold:600;
+  --fw-bold:    700;
+
+  /* ---- Spacing (4px grid) ---- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px; --sp-12: 48px;
+
+  /* ---- Radius ---- */
+  --r-sm:   4px;     /* badges, small buttons */
+  --r-md:   6px;     /* inputs, buttons */
+  --r-lg:   10px;    /* cards, tables */
+  --r-xl:   14px;    /* login card, tiles */
+  --r-pill: 999px;
+
+  /* ---- Elevation ---- */
+  --shadow-xs: 0 1px 2px rgba(16, 32, 54, .06);
+  --shadow-sm: 0 1px 3px rgba(16, 32, 54, .08), 0 1px 2px rgba(16, 32, 54, .04);
+  --shadow-md: 0 4px 12px rgba(16, 32, 54, .10), 0 2px 4px rgba(16, 32, 54, .06);
+  --shadow-lg: 0 12px 32px rgba(16, 32, 54, .18);
+
+  /* ---- Layout ---- */
+  --layout-rail-w:    72px;    /* icon rail (modules) */
+  --layout-panel-w:   244px;   /* module menu panel */
+  --layout-topbar-h:  60px;   /* also the height of the sidebar brand row (logo 44px) */
+  --layout-content-max: 1504px;   /* page container incl. its side padding (2 × 32px) → 1440px of content, centred */
+  --control-h:    36px;
+  --control-h-sm: 30px;
+
+  /* ---- Motion ---- */
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --dur-fast: 120ms;
+  --dur:      200ms;
+
+  color-scheme: light;
+}
+
+/* ==========================================================================
+   Dark mode — deep navy surfaces, same blue/teal accents.
+   Activated by <html data-theme="dark"> (set before first paint by danke-early.js).
+   ========================================================================== */
+:root[data-theme="dark"] {
+  --c-bg:                  var(--dk-navy-950);
+  --c-surface:             var(--dk-navy-850);
+  --c-surface-2:           var(--dk-navy-900);
+  --c-surface-3:           var(--dk-navy-700);
+  --c-row-alt:             #182B46;
+  --c-row-hover:           #1E3757;
+  --c-sidebar:             var(--dk-navy-900);
+  --c-topbar:              var(--dk-navy-900);
+  --c-search-bg:           var(--dk-navy-800);   /* one step lighter than the top bar + a visible outline */
+  --c-search-border:       #3D5577;
+  --c-rail:                var(--dk-navy-950);
+  --c-rail-border:         #22385A;
+  --c-overlay:             rgba(0, 0, 0, .6);
+
+  --c-text:                #E6EDF5;   /* 13.4:1 on surface */
+  --c-text-muted:          #A9B8C8;   /* 7.9:1 on surface */
+  --c-text-subtle:         #93A4B7;   /* 6.2:1 on surface */
+  --c-text-on-primary:     #FFFFFF;   /* 5.3:1 on primary */
+  --c-link:                var(--dk-brand-blue-300);  /* 6.2:1 */
+  --c-link-hover:          #8CC4F2;
+
+  --c-border:              #22385A;
+  --c-border-strong:       #6B7F96;   /* 3.6:1 vs surface */
+  --c-focus:               #5BA8E8;
+  --c-focus-ring:          rgba(91, 168, 232, .20);   /* dark: a touch stronger, still a halo */
+
+  --c-primary:             var(--dk-brand-blue);
+  --c-primary-hover:       #2479BE;
+  --c-primary-active:      var(--dk-brand-blue-600);
+  --c-primary-soft:        #17365A;
+  --c-primary-soft-text:   #A9D2F5;
+  --c-accent:              var(--dk-brand-teal-300);
+  --c-accent-text:         var(--dk-brand-teal-300);  /* 7.3:1 */
+  --c-accent-soft:         #133A3D;
+
+  --c-success:             #5FD49A;
+  --c-success-soft:        #123A2C;
+  --c-warning:             #F5B84D;
+  --c-warning-soft:        #3A2E14;
+  --c-warning-solid:       #E0A43A;
+  --c-danger:              #FF8A80;
+  --c-danger-soft:         #3D1C22;
+  --c-danger-hover:        #FFA59D;
+  --c-info:                #A9D2F5;
+  --c-info-soft:           #17365A;
+  --c-neutral-soft:        #1C2E48;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, .35);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, .4);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, .45);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, .55);
+
+  color-scheme: dark;
+}

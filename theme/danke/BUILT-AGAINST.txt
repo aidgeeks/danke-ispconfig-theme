@@ -1,0 +1,10 @@
+Danke — theme "danke" (release r13, 2026-11-18) for ISPConfig 3.3.x — built against:
+  ISPConfig 3.3.3p2   source tarball ISPConfig-3.3.3p2.tar.gz (ispconfig.org)
+  sha256 6895812f07c48c521006ca7322545f545cc9ec51bcd1a09110c1e313ffacc612
+  Base: interface/web/themes/default of that release (CSS, icon fonts and images copied unchanged, see README.md;
+  ISPConfig's scripts are not copied — they are loaded from themes/default of the installed release).
+Also checked against (see TESTED-VERSIONS.md):
+  ISPConfig 3.3.2p1   sha256 b3a2111e997df8e1472933788c2809f038498e97bc00fbd285e18a84a47d4a93
+  ISPConfig 3.3.1p1   sha256 9525afb5ed886ba3c34eaf3288e9827bf1c540f26dfba695b53709072d966f0e
+(ispconfig_version, README.md and this file are denied to browsers by the ISPConfig 3.3.3 vhost. TESTED-VERSIONS.md is
+ not in that rule: it holds nothing about the server it is installed on, only which releases the theme was tested with.)

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang='en' data-theme='light'>
+<head>
+  <meta charset='utf-8' />
+
+  <!-- brand: name, favicons, logos, footer and credit are the generated pieces templates/brand_*.htm — written from the
+       active brand profile (brands/<id>/ or this server's local/brand/) by install-theme.sh. Never edit them by hand. -->
+  <title><tmpl_include file="brand_name.htm"></title>
+  <meta name='application-name' content='<tmpl_include file="brand_name.htm">'>
+
+  <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=yes'>
+  <meta name='description' lang='en' content='' />
+  <meta name='keywords' lang='en' content='' />
+  <meta name='robots' content='noindex, nofollow' />
+  <meta name='color-scheme' content='light dark'>
+
+  <!-- theme boot: sets data-theme (light/dark) and the navigation state before the first paint — must stay first and synchronous -->
+  <script src='themes/<tmpl_var name='current_theme'>/assets/javascripts/danke-early.js?ver=<tmpl_include file="asset_ver.htm">'></script>
+
+  <tmpl_include file="brand_head.htm">
+
+  <!-- vendor + ISPConfig base styles (unchanged copies from the default theme) -->
+  <link rel='stylesheet' href='themes/<tmpl_var name='current_theme'>/assets/stylesheets/bootstrap.min.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='themes/<tmpl_var name='current_theme'>/assets/stylesheets/fonts.min.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='themes/<tmpl_var name='current_theme'>/assets/stylesheets/ispconfig.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='themes/<tmpl_var name='current_theme'>/assets/stylesheets/bootstrap-datetimepicker.min.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='themes/<tmpl_var name='current_theme'>/assets/stylesheets/select2.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='themes/<tmpl_var name='current_theme'>/assets/stylesheets/select2-bootstrap.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='themes/<tmpl_var name='current_theme'>/assets/stylesheets/font-awesome-4.7.0/css/font-awesome.min.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='themes/<tmpl_var name='current_theme'>/assets/stylesheets/bootstrap-icons.min.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <!-- Danke design system: palette (+ the brand profile's optional accent), tokens, components -->
+  <link rel='stylesheet' href='themes/<tmpl_var name='current_theme'>/assets/stylesheets/danke/fonts.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='themes/<tmpl_var name='current_theme'>/assets/stylesheets/danke/palette.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='themes/<tmpl_var name='current_theme'>/assets/brand/accent.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='themes/<tmpl_var name='current_theme'>/assets/stylesheets/danke/tokens.css?ver=<tmpl_include file="asset_ver.htm">' />
+  <link rel='stylesheet' href='themes/<tmpl_var name='current_theme'>/assets/stylesheets/danke/danke.css?ver=<tmpl_include file="asset_ver.htm">' />
+</head>
+
+<body class='dk dk-app'>
+  <a class='dk-skip' href='#content' data-dk-i18n='skip'>Skip to content</a>
+  <!-- language probe: ISPConfig gives templates no language variable; danke.js reads these translated strings -->
+  <span id='dk-lang-probe' hidden data-a='<tmpl_var name="logout_txt">' data-b='<tmpl_var name="globalsearch_searchfield_watermark_txt">' data-c='<tmpl_var name="datalog_changes_close_txt">'></span>
+
+  <!-- off canvas target required by responsive.js (ISPConfig.loadPushyMenu); hidden, dk uses its own drawer -->
+  <nav class='pushy pushy-left' aria-hidden='true' hidden></nav>
+
+  <div class='dk-shell'>
+
+    <!-- ===== Navigation: icon rail (modules) + module menu panel ===== -->
+    <aside id='dk-sidebar' class='dk-sidebar' aria-label='Navigation' data-dk-i18n-attr='aria-label:nav.label'>
+      <div class='dk-rail'>
+        <div class='dk-rail-head'>
+        <a href='index.php' class='dk-rail-brand' title='<tmpl_include file="brand_name.htm">' data-dk-brand-attr='title'>
+          <!-- brand icon directly on the dark rail; the full logo is in the panel / top bar -->
+          <tmpl_include file="brand_rail.htm">
+        </a>
+        </div>
+        <!-- module list: filled by ISPConfig.loadMenus() from nav.php?nav=top (topnav.tpl.htm) -->
+        <tmpl_if name='logged_in' value='y'><div id='topnav-container'></div></tmpl_if>
+      </div>
+      <div class='dk-panel' id='dk-panel'>
+        <div class='dk-brand'>
+          <a href='index.php' class='dk-brand-link' title='<tmpl_include file="brand_name.htm">' data-dk-brand-attr='title'>
+            <!-- full logo (a light / dark pair switched by CSS, or the logo of the ISPConfig installation) -->
+            <tmpl_include file="brand_logo.htm">
+          </a>
+          <button type='button' class='dk-icon-btn dk-nav-close' data-dk-nav-close aria-label='Close menu' data-dk-i18n-attr='aria-label:nav.close'><i class='bi bi-x-lg' aria-hidden='true'></i></button>
+        </div>
+        <!-- heading = name of the current module (set by danke.js from the rail) -->
+        <h2 class='dk-panel-title' id='dk-module-label'></h2>
+        <div class='dk-panel-scroll'>
+          <!-- module menu: filled by ISPConfig.loadMenus() from nav.php?nav=side (sidenav.tpl.htm) -->
+          <tmpl_if name='logged_in' value='y'><div id='sidebar' class='dk-subnav-container'></div></tmpl_if>
+          <!-- Home panel (the dashboard module has no menu of its own): built by danke.js — Overview, quick actions, Monitor, Account -->
+          <nav id='dk-home-nav' class='dk-home-nav' aria-label='Home' hidden></nav>
+        </div>
+      </div>
+    </aside>
+    <div class='dk-scrim' data-dk-nav-close hidden></div>
+
+    <!-- ===== Main column ===== -->
+    <div class='dk-main'>
+      <header class='dk-topbar' role='banner'>
+        <!-- one button: below 1200px it is the "Menu" button of the drawer (hamburger icon), above it collapses/expands
+             the module menu panel (panel icon). Icon switched by CSS, label + aria-expanded by danke.js. -->
+        <button type='button' class='dk-icon-btn dk-nav-toggle' aria-controls='dk-sidebar' aria-expanded='false' aria-label='Menu' title='Menu'>
+          <i class='bi bi-list dk-nav-icon-menu' aria-hidden='true'></i>
+          <i class='bi bi-layout-sidebar dk-nav-icon-panel' aria-hidden='true'></i>
+        </button>
+        <!-- compact brand mark: only visible while the navigation is a drawer (tablet/phone) -->
+        <tmpl_include file="brand_icon.htm">
+        <!-- full logo: only visible on desktop while the module menu panel (which carries the logo) is not shown -->
+        <span class='dk-topbar-logo'><tmpl_include file="brand_logo.htm"></span>
+        <!-- breadcrumb: Module > Group > Item > record > tab (built by danke.js from the menus and the current content URL) -->
+        <nav class='dk-context dk-crumbs' id='dk-crumbs' aria-label='Breadcrumb' data-dk-i18n-attr='aria-label:crumbs.label'><ol></ol></nav>
+
+        <tmpl_if name="cpuser">
+          <tmpl_if name='usertype' op='==' value='normaluser'>
+            <!-- search field (jquery.ispconfigsearch) -->
+            <form action='#' method='get' id='searchform' role='search' class='dk-search'>
+              <div>
+                <div>
+                  <div class='input-group'>
+                    <span class='input-group-addon dk-search-icon' aria-hidden='true'><i class='bi bi-search'></i></span>
+                    <input id='globalsearch' type='text' class='form-control' placeholder='{tmpl_var name="globalsearch_searchfield_watermark_txt"}' aria-label='{tmpl_var name="globalsearch_searchfield_watermark_txt"}' autocomplete='off' />
+                  </div>
+                </div>
+              </div>
+            </form>
+          </tmpl_if>
+        </tmpl_if>
+
+        <div class='dk-topbar-actions'>
+          <!-- pending datalog changes (shown by ISPConfig.dataLogNotification) -->
+          <div class="notification" data-toggle="modal" data-target="#datalogModal" style="display: none;" role="button" tabindex="0" title="{tmpl_var name='datalog_changes_txt'}" aria-label="{tmpl_var name='datalog_changes_txt'}">
+            <i class='bi bi-arrow-repeat' aria-hidden='true'></i>
+            <span class="notification_text">{tmpl_var name="datalog_changes_count"}</span>
+          </div>
+
+          <button type='button' class='dk-icon-btn dk-theme-toggle' data-dk-theme-toggle aria-pressed='false' aria-label='Dark mode' data-dk-i18n-attr='aria-label:theme.toggle;title:theme.toggle' title='Dark mode'>
+            <i class='bi bi-moon-stars dk-theme-icon-dark' aria-hidden='true'></i>
+            <i class='bi bi-sun dk-theme-icon-light' aria-hidden='true'></i>
+          </button>
+
+          <tmpl_if name="cpuser">
+          <div class='dropdown dk-user'>
+            <button type='button' class='dk-user-btn dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false' id='dk-user-menu'>
+              <span class='dk-avatar' aria-hidden='true' data-dk-initial='<tmpl_var name="cpuser">'></span>
+              <span class='dk-user-name'><tmpl_var name="cpuser"></span>
+              <i class='bi bi-chevron-down' aria-hidden='true'></i>
+            </button>
+            <ul class='dropdown-menu dropdown-menu-right dk-menu' aria-labelledby='dk-user-menu'>
+              <li class='dropdown-header'><span data-dk-i18n='user.signedin'>Signed in as</span> <strong class='dk-mono'><tmpl_var name="cpuser"></strong></li>
+              <li role='separator' class='divider'></li>
+              <li><a href='#' data-dk-theme-set='light'><i class='bi bi-sun' aria-hidden='true'></i> <span data-dk-i18n='theme.light'>Light mode</span></a></li>
+              <li><a href='#' data-dk-theme-set='dark'><i class='bi bi-moon-stars' aria-hidden='true'></i> <span data-dk-i18n='theme.dark'>Dark mode</span></a></li>
+              <li><a href='#' data-dk-theme-set='system'><i class='bi bi-display' aria-hidden='true'></i> <span data-dk-i18n='theme.system'>Use system setting</span></a></li>
+              <li role='separator' class='divider'></li>
+              <li>
+                <!-- logout button (ISPConfig: data-load-content="login/logout.php"; also returns from "login as") -->
+                <button type='button' id='logout-button' class='dk-menu-btn' data-load-content="login/logout.php"><i class='bi bi-box-arrow-right' aria-hidden='true'></i> <tmpl_var name="logout_txt"> <span class='sr-only'><tmpl_var name="cpuser"></span></button>
+              </li>
+            </ul>
+          </div>
+          </tmpl_if>
+        </div>
+      </header>
+
+      <!-- Datalogstatus Modal (ISPConfig.dataLogNotification writes into .modal-body) -->
+      <div id="datalogModal" class="modal fade" role="dialog" tabindex="-1" aria-labelledby="datalogModalTitle">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="{tmpl_var name='datalog_changes_close_txt'}">&times;</button>
+              <h4 class="modal-title" id="datalogModalTitle">{tmpl_var name="datalog_changes_txt"}</h4>
+            </div>
+            <div class="modal-body">
+              <ul>
+              <tmpl_loop name="datalog_changes">
+                <li><strong>{tmpl_var name="text"}:</strong> {tmpl_var name="count"}</li>
+              </tmpl_loop>
+              </ul>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">{tmpl_var name="datalog_changes_close_txt"}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- END Datalogstatus Modal -->
+
+      <main id='content' class='dk-content' tabindex='-1'>
+        <noscript>This page needs JavaScript to be enabled.</noscript>
+        <form method="post" action="" id="pageForm" name="pageForm" enctype="multipart/form-data" class='form-horizontal' role='form'>
+          <div id="pageContent" data-startpage="{tmpl_var name="startpage"}" aria-live="polite" aria-busy="false"><!-- AJAX CONTENT --></div>
+        </form>
+      </main>
+
+      <!-- footer: same centred container as the page; brand left, maker credit right (stacked on phones) -->
+      <footer class='dk-footer'>
+        <div class='dk-footer-inner'>
+          <span class='dk-footer-brand' data-dk-seps>
+            <tmpl_include file="brand_footer.htm">
+            <span>powered by <a href="<tmpl_var name="app_link">" target="_blank" rel="noopener noreferrer"><tmpl_var name="app_title"></a></span>
+          </span>
+          <!-- maker credit: on / off per brand profile or per server (local/credit); EN / PT text and the link are set by danke.js -->
+          <tmpl_include file="brand_credit.htm">
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script type="text/javascript" src="js/jquery.min.js"></script>
+  <script src='themes/default/assets/javascripts/bootstrap.min.js'></script>
+  <script src='themes/default/assets/javascripts/bootstrap-datetimepicker.min.js'></script>
+  <script src='themes/default/assets/javascripts/ispconfig.js'></script>
+  <script src='themes/default/assets/javascripts/modernizr.custom.min.js'></script>
+  <script src='themes/default/assets/javascripts/responsive.min.js'></script>
+  <script src='themes/<tmpl_var name='current_theme'>/assets/javascripts/danke.js?ver=<tmpl_include file="asset_ver.htm">'></script>
+  <script src='js/select2/select2.min.js'></script>
+  <script src='js/scrigo.js.php'></script>
+  <script type="text/javascript" src="js/jquery.ispconfigsearch.js"></script>
+  <script type="text/javascript" src="js/jquery.tipsy.js"></script>
+  <script src="js/chartjs/chart.umd.js"></script>
+  <tmpl_loop name="js_d_includes">
+	<script type="text/javascript" src="js/js.d/<tmpl_var name='file'>"></script>
+  </tmpl_loop>
+  <script>
+  <!--
+	//$('.ttip').tipsy({live: true, gravity: 'ne', html: true});
+
+	ISPConfig.tabChangeDiscard = '<tmpl_var name="tabchange_discard_enabled">';
+	ISPConfig.tabChangeWarning = '<tmpl_var name="tabchange_warning_enabled">';
+	ISPConfig.tabChangeWarningTxt = '<tmpl_var name="global_tabchange_warning_txt">';
+	ISPConfig.tabChangeDiscardTxt = '<tmpl_var name="global_tabchange_discard_txt">';
+
+	<tmpl_if name="use_loadindicator" value="y">ISPConfig.setOption('useLoadIndicator', true);</tmpl_if>
+	<tmpl_if name="use_combobox" value="y">ISPConfig.setOption('useComboBox', true);</tmpl_if>
+
+	$(document).ready(function() {
+		$('#globalsearch').ispconfigSearch({
+			dataSrc: '/dashboard/ajax_get_json.php?type=globalsearch',
+			resultsLimit: '$ <tmpl_var name="globalsearch_resultslimit_of_txt"> % <tmpl_var name="globalsearch_resultslimit_results_txt">',
+			noResultsText: '<tmpl_var name="globalsearch_noresults_text_txt">',
+			noResultsLimit: '<tmpl_var name="globalsearch_noresults_limit_txt">',
+			searchFieldWatermark: '<tmpl_var name="globalsearch_searchfield_watermark_txt">',
+			resultBoxPosition: ''
+		});
+
+    ISPConfig.loadInitContent();
+
+	});
+  //-->
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,45 @@
+# Tested ISPConfig versions — theme "danke"
+
+The theme targets the **latest ISPConfig release** (`ispconfig_version` = that release). This list is the history of
+what each ISPConfig version was tested with. It is **information, not a gate**: the installer refuses only another
+major.minor (the rule of ISPConfig's own `theme_is_compatible()`); for a 3.3.x version that is not listed below it
+prints a warning and installs. One line per test; newest theme release first. The installer reads the first column.
+
+Result: `pass` = all automated suites green · `pass*` = green, with differences that come from that ISPConfig release
+(see notes) · `live` = checked on a real panel · `live*` = checked on a real panel, with a finding (see notes).
+
+Theme release: the package release (`r17`, …); from the first public release on with the public version next to it —
+**r17 = 1.0.0**. The same pair is the version in the address of every file the theme loads (`?ver=1.0.0-r17`).
+
+| ISPConfig | Date | Theme release | Result | How / notes |
+|---|---|---|---|---|
+| 3.3.3p2 | 2026-11-19 | r17 (1.0.0) | pass | All suites. r17 = r16 + "powered by ISPConfig" below the login card (ISPConfig's own link), one version in the address of every theme file (a normal reload shows a new release), footer and login lines checked from 360 to 1366 px (links 44 px high on phones, the login page fits a 360 × 640 screen). Not yet re-checked on a real panel. |
+| 3.3.2p1 | 2026-11-19 | r17 (1.0.0) | pass* | Same, from the 3.3.2p1 source (differences as in the r11 line). Not yet re-checked on a real panel. |
+| 3.3.1p1 | 2026-11-19 | r17 (1.0.0) | pass* | Same, from the 3.3.1p1 source (differences as in the r11 line). Not yet re-checked on a real panel. |
+| 3.3.1p1 | 2026-11-19 | r16 | live* | Real panel, profile `neutral`, company name set. Footer on phones (360 / 390 / 412 px): two centred lines, no horizontal scroll, not pinned; from 768 px one pinned line. No request to the maker's site, no 404, no console errors. Found: after the update the browser kept the previous release's boot script (it was loaded without a version), so "Danke" in the credit had no link until a forced reload; links only 15 px high on phones; the login page needed a scroll on a 360 × 640 screen — all three fixed in r17. |
+| 3.3.3p2 | 2026-11-18 | r16 | pass | All suites. r16 = r15 + the credit wording per brand profile ("Danke theme · by AIDGeeks" for the profile `neutral`, text only), the starter kit for an own brand (`install-theme.sh --new-brand`), the optional rail colour, corrected branding notes. Not yet re-checked on a real panel. |
+| 3.3.2p1 | 2026-11-18 | r16 | pass* | Same, from the 3.3.2p1 source (differences as in the r11 line). Not yet re-checked on a real panel. |
+| 3.3.1p1 | 2026-11-18 | r16 | pass* | Same, from the 3.3.1p1 source (differences as in the r11 line). Not yet re-checked on a real panel. |
+| 3.3.3p2 | 2026-11-18 | r15 | live | Real panel, installed over r14, the branded profile and `local/` kept. `set-user-theme.sh --set-default danke` reported "already set". Four users on `danke`, two of them switched by `--sync-from-client --apply` (the backup with `--single-transaction` worked). |
+| 3.3.2p1 | 2026-11-18 | r15 | live | Real panel, installed over r13; `local/` carried over, the branded profile kept without `--brand`. `--set-default danke` reported "already set". Read-only tour: title from the profile, core scripts from `themes/default`, no 404, no console errors; Home with the server status card (no raw language keys), Sites, Email, DNS records with "Add record", Monitor translated. |
+| 3.3.1p1 | 2026-11-18 | r15 | live | First real 3.3.1p1 panel, installed with `--brand neutral`: the installer wrote `3.3.1p1` into the installed copy's `ispconfig_version` (theme value kept as `ispconfig_version.theme`) and said so. Admin switched to `danke` in User Settings. Read-only tour: ISPConfig's logo and rail icon, title "ISPConfig", server status "Warning · 1 warning", Clients, Sites, Email, Monitor; no raw language keys, no 404, no console errors; donation dashlet present (hidden by core's own 365-day hide). `set-user-theme.sh --set-default danke --apply` → login page in `danke`. |
+| 3.3.3p2 | 2026-11-18 | r15 | pass | All suites. r15 = the theme files of r14, unchanged; the optional helper `set-user-theme.sh` got a fix for its backup step and the new mode `--set-default <theme>` (global default theme in the two `config.inc.php` files). Not yet re-checked on a real panel. |
+| 3.3.2p1 | 2026-11-18 | r15 | pass* | Same, from the 3.3.2p1 source (differences as in the r11 line). Not yet re-checked on a real panel. |
+| 3.3.1p1 | 2026-11-18 | r15 | pass* | Same, from the 3.3.1p1 source (differences as in the r11 line). Not tested on a real 3.3.1p1 panel. |
+| 3.3.3p2 | 2026-11-18 | r14 | live* | Real panel (lab), installed over r13; the branded profile was kept. Helper `set-user-theme.sh`: `--list` flagged exactly the two client users whose login theme differed from their client form. `--sync-from-client --apply` first stopped at its backup — `mysqldump` error 1044 at LOCK TABLES, a privilege ISPConfig's database user does not have — and changed nothing, as designed. With `--single-transaction` in the dump call (part of r15) the backup was written, the two users were switched, `--list` showed no MISMATCH, and "login as" such a client opened the panel in `danke`. |
+| 3.3.3p2 | 2026-11-18 | r14 | pass | All suites, plus the new one for the User Settings save (Design changed → page reload; not changed → "Saved."). r14 = r13 + that handling and the optional helper `set-user-theme.sh`. Not yet re-checked on a real panel. |
+| 3.3.2p1 | 2026-11-18 | r14 | pass* | Same, from the 3.3.2p1 source (differences as in the r11 line). Not yet re-checked on a real panel. |
+| 3.3.1p1 | 2026-11-18 | r14 | pass* | Same, from the 3.3.1p1 source (differences as in the r11 line). Not tested on a real 3.3.1p1 panel. |
+| 3.3.3p2 | 2026-11-18 | r13 | live | Real panel (lab), installed with a branded profile next to the theme's earlier folder, global default set to `danke` by hand, old folder removed with `uninstall-theme.sh --theme <old id>`: login page and panel correct through `danke`, server status OK, no 404, stored light / dark choice carried over. Found (ISPConfig, not the theme): the Design field of *Edit Client* does not switch an existing client — see INSTALL.md "Switching existing users". |
+| 3.3.2p1 | 2026-11-18 | r13 | live* | Real panel, installed with another branded profile, global default set to `danke`, old folder removed: login page and panel correct (logo, rail icon, favicon, footer, credit), server status "Warning · 1 warning" (pending OS updates), no 404. Seen once, not reproduced: a Design change in User Settings that was not stored on the first save — r14 handles that answer itself and confirms other saves with "Saved.". |
+| 3.3.3p2 | 2026-11-18 | r13 | pass | Pages rendered from the 3.3.3p2 source with ISPConfig's own template class and scripts; all suites. r13 = r12 under the name "danke", with brand profiles. Not yet re-checked on a real panel. |
+| 3.3.2p1 | 2026-11-18 | r13 | pass* | Same, from the 3.3.2p1 source (differences as in the r11 line). Not yet re-checked on a real panel. |
+| 3.3.1p1 | 2026-11-18 | r13 | pass* | Same, from the 3.3.1p1 source (differences as in the r11 line). Not tested on a real 3.3.1p1 panel. |
+| 3.3.3p2 | 2026-11-17 | r12 | pass | All suites. r12 = r11 + the dashboard "Server status" card built from data. |
+| 3.3.2p1 | 2026-11-17 | r12 | pass* | All suites, from the 3.3.2p1 source (differences as in the r11 line). |
+| 3.3.1p1 | 2026-11-17 | r12 | pass* | All suites, from the 3.3.1p1 source (differences as in the r11 line). |
+| 3.3.3p2 | 2026-11-17 | r11 | live | Real panel: install, per-user test, uninstall (stopped on the global default as designed, `--reset-default`), fallback to `default` at a fresh login, `--rollback` — all as designed. Found: sessions open during an uninstall stay broken until logout (documented since r12). |
+| 3.3.2p1 | 2026-11-17 | r11 | live* | Real panel, theme for one admin user: core scripts load from `themes/default`, no 404, no console errors; Sites, Email, DNS zones + records, website form, Monitor OK. One bug found — the dashboard "Server status" card showed raw language keys for a server with a warning — fixed in r12. |
+| 3.3.3p2 | 2026-11-17 | r11 | pass | All suites. Target release. |
+| 3.3.2p1 | 2026-11-17 | r11 | pass* | All suites, from the 3.3.2p1 source. Differences are core's: password reset answers are not neutral (green "link sent" only for an existing account, red "does not match" otherwise); closing a dashboard message is acknowledged without CSRF token (this core has none). |
+| 3.3.1p1 | 2026-11-17 | r11 | pass* | All suites, from the 3.3.1p1 source. As 3.3.2p1, plus: this core accepts a theme only when `ispconfig_version` equals its version exactly — `install-theme.sh` writes `3.3.1p1` into the installed copy's file (and says so); older donation dashlet markup is adapted by the theme. |

@@ -1,0 +1,34 @@
+<!-- module menu — rendered by nav.php?nav=side into #sidebar. Item link/target logic identical to the default theme;
+     group titles are headings (no link); every linked item has an icon element (danke.js picks the glyph by link target,
+     CSS shows a neutral one until then). danke.js adds: active item, friendly labels, icons, breadcrumb. -->
+<tmpl_loop name="nav_left">
+	<div class="dk-navgroup">
+	<tmpl_if name="title">
+		<!-- group heading: plain heading, not a link (the default theme links it to the group's first page) -->
+		<h3 class="dk-navgroup-title"><tmpl_var name="title"></h3>
+	</tmpl_if>
+	<ul id="sub-navigation" class="dk-subnav">
+	  <tmpl_loop name="items">
+	  <li<tmpl_if name="html_id"> id='<tmpl_var name="html_id">' </tmpl_if>>
+		<tmpl_if name="link">
+			<tmpl_if name="target" op="==" value="_blank">
+				<a href="{tmpl_var name='link'}" target="_blank" rel="noopener">
+			<tmpl_elseif name="target" op="==" value="_top">
+				<a href="{tmpl_var name='link'}" target="_top">
+			<tmpl_else>
+				<a href="#" data-load-content="{tmpl_var name='link'}">
+			</tmpl_if>
+		</tmpl_if>
+		  <div class="dk-subnav-inner"{tmpl_if name='css'} style="{tmpl_var name='css'}"{/tmpl_if}>
+			<tmpl_if name="link"><tmpl_if name="title"><i class="bi dk-subnav-icon" aria-hidden="true"></i></tmpl_if></tmpl_if>
+			<tmpl_if name="title"><span class="dk-subnav-text"><tmpl_var name="title"></span></tmpl_if>
+			<tmpl_if name="image"><div align="center"><tmpl_var name="image"></div></tmpl_if>
+		  </div>
+		<tmpl_if name="link">
+		</a>
+		</tmpl_if>
+	  </li>
+	  </tmpl_loop>
+	</ul>
+	</div>
+</tmpl_loop>

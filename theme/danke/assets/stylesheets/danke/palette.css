@@ -1,0 +1,25 @@
+/* ==========================================================================
+   PALETTE — the raw colours of the theme. Components never use these directly:
+   tokens.css maps them to semantic roles (--c-primary, --c-link, --c-sidebar …)
+   for light and dark. A brand profile can replace the primary blue with one
+   "accent" colour (brand.json) — that is written to assets/brand/accent.css,
+   which is loaded right after this file.
+   ========================================================================== */
+:root {
+  --dk-brand-blue:        #1F6FAF;
+  --dk-brand-blue-600:    #195C93;
+  --dk-brand-blue-700:    #174F7E;
+  --dk-brand-blue-300:    #5BA8E8;
+  --dk-brand-teal:        #3BA899;
+  --dk-brand-teal-700:    #1A7266;
+  --dk-brand-teal-300:    #4CC3B2;
+  --dk-ink:               #1F1F1F;
+  --dk-slate:             #4A4E50;
+  --dk-mist:              #E9EFF3;
+  --dk-white:             #FFFFFF;
+  --dk-navy-950:          #0B1628;
+  --dk-navy-900:          #0F1D33;
+  --dk-navy-850:          #13233A;
+  --dk-navy-800:          #1A2D49;
+  --dk-navy-700:          #24395A;
+}

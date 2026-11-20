@@ -6,7 +6,7 @@
  * CONFIGURATION — behaviour switches of the theme. Logo, name, colour accent and the credit switch are NOT here:
  * they belong to the brand profile (brands/<id>/ or this server's local/ folder) and are applied by
  * install-theme.sh — see INSTALL.md, "Brand profiles".
- *   lang        'auto' → Portuguese when the ISPConfig UI language is Portuguese (Brazil "br"),
+ *   lang        'auto' → Portuguese when the ISPConfig UI language is Portuguese ("br" or "pt"),
  *               English otherwise.  'pt' → always Portuguese, 'en' → always English.
  *   brandName   '' (default) → the brand name is what the SERVER printed from the brand profile (page <title>,
  *               logo texts, footer, login page — correct before any script runs). A non-empty value here only

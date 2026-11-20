@@ -38,8 +38,9 @@
 
 <body class='dk dk-app'>
   <a class='dk-skip' href='#content' data-dk-i18n='skip'>Skip to content</a>
-  <!-- language probe: ISPConfig gives templates no language variable; danke.js reads these translated strings -->
-  <span id='dk-lang-probe' hidden data-a='<tmpl_var name="logout_txt">' data-b='<tmpl_var name="globalsearch_searchfield_watermark_txt">' data-c='<tmpl_var name="datalog_changes_close_txt">'></span>
+  <!-- language probe: ISPConfig gives templates no language variable; danke.js reads these translated strings
+       (data-d: ISPConfig's "pt" wordbook leaves the first three in English, this one it translates) -->
+  <span id='dk-lang-probe' hidden data-a='<tmpl_var name="logout_txt">' data-b='<tmpl_var name="globalsearch_searchfield_watermark_txt">' data-c='<tmpl_var name="datalog_changes_close_txt">' data-d="<tmpl_var name="delete_confirmation" escape="html">"></span>
 
   <!-- off canvas target required by responsive.js (ISPConfig.loadPushyMenu); hidden, dk uses its own drawer -->
   <nav class='pushy pushy-left' aria-hidden='true' hidden></nav>
@@ -181,7 +182,7 @@
         <div class='dk-footer-inner'>
           <span class='dk-footer-brand' data-dk-seps>
             <tmpl_include file="brand_footer.htm">
-            <span>powered by <a href="<tmpl_var name="app_link">" target="_blank" rel="noopener noreferrer"><tmpl_var name="app_title"></a></span>
+            <span class='dk-powered'><span data-dk-i18n='powered'>powered by</span> <a href="<tmpl_var name="app_link">" target="_blank" rel="noopener noreferrer"><tmpl_var name="app_title"></a></span>
           </span>
           <!-- maker credit: on / off per brand profile or per server (local/credit); EN / PT text and the link are set by danke.js -->
           <tmpl_include file="brand_credit.htm">

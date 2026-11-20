@@ -43,7 +43,7 @@ More screenshots: [list](docs/screenshots/list-light.png) · [form](docs/screens
 
 ## Get it
 Everything is in this repository: **https://github.com/aidgeeks/danke-ispconfig-theme** — the theme (`theme/danke`), the
-scripts (`install/`), this README and [`INSTALL.md`](INSTALL.md). Each release is a tag (`v1.0.0`, …); the
+scripts (`install/`), this README and [`INSTALL.md`](INSTALL.md). Each release is a tag (`v1.0.1`, `v1.0.0`, …); the
 [changelog](#changelog) below says what a release contains.
 
 ## Install
@@ -54,11 +54,11 @@ cd danke-ispconfig-theme
 ./install/install-theme.sh --dry-run theme/danke      # shows the plan, changes nothing
 ./install/install-theme.sh theme/danke
 ```
+Every command in this README is written to be run **from the clone folder** (`danke-ispconfig-theme`), as root.
+
 No git on the server? Download the release as an archive on your workstation, copy the folder to the server and
 run the same two commands in it. If you were given a package file instead (`danke-theme-….tar.gz` with its
 `.sha256`), check it with `sha256sum -c danke-theme-*.tar.gz.sha256` and pass the file in place of `theme/danke`.
-The examples below call the scripts `./install-theme.sh`, `./set-user-theme.sh` and `./uninstall-theme.sh` — they
-are the ones in `install/`.
 
 Then log in, open *Tools → User Settings*, set **Design** to `danke` and save — the page reloads with the theme.
 The installer backs up what it replaces, never edits `config.inc.php` and never writes to the database.
@@ -66,63 +66,110 @@ Full guide — per-user test, making it the default for everybody, version notes
 
 ## Making Danke the default
 The global default theme (`$conf['theme']`) decides the **login page** and the theme of users created from now on.
-After you tested with one user, the optional helper sets it — a **dry run unless you add `--apply`**:
-```bash
-./set-user-theme.sh --set-default danke              # shows the current and the new line of both config files
-./set-user-theme.sh --set-default danke --apply      # asks for yes; backup to /root/danke-config-backup-<timestamp>/
-./set-user-theme.sh --set-default default --apply    # back to ISPConfig's theme — do this before an uninstall
-```
-It changes only the line `$conf['theme'] = '…';` in `interface/lib/config.inc.php` and `server/lib/config.inc.php`
-(owner and mode kept, diff and restore commands printed), refuses a theme that is not installed or not compatible,
-and says "already set" when there is nothing to do. ISPConfig's updater keeps the value. Doing the edit by hand is
-described in [`INSTALL.md`](INSTALL.md), step 6.
+It does not switch anybody who already exists. Both — the users and the login page — are steps of one recipe:
+["Switch everybody to Danke"](#switch-everybody-to-danke) below. Test with one user first; the recipe does.
 
 ## Switching existing users
 - `$conf['theme']` in `config.inc.php` sets the **login page** and the theme of users created **from now on**. It
   does not switch anybody who already exists.
-- The **Design** field in *Client → Edit Client* works only when a client is **created**. For an existing client
+- Existing users keep **their own stored theme**. What switches one: the user's own *Tools → User Settings →
+  Design*; the admin via "login as" and the same form; or the helper below.
+- The **Design** field in *Client → Edit Client* counts only when a client is **created**. For an existing client
   ISPConfig stores the value but the login keeps the old theme (ISPConfig 3.3.1p1 – 3.3.3p2,
   `client/client_edit.php`: the update copies user name, password, language and modules to the login user, not the
   theme).
-- What does switch an existing user: the user's own *Tools → User Settings → Design*; the admin via "login as" and
-  the same form; or the helper below.
 - If a user's stored theme was removed, the Design list shows the **first** theme as if it were selected — nothing
   is set until that user saves.
 
 `install/set-user-theme.sh` is a separate, optional admin tool (root, on the panel server). It reads ISPConfig's own
-database credentials, for users touches only `sys_user.app_theme` and `client.usertheme`, and is a **dry run unless
-you add `--apply`** (which first writes a `mysqldump` of both tables to `/root/` and asks for `yes`; the dump needs
-no LOCK TABLES privilege):
+database credentials and, for users, touches only `sys_user.app_theme` and `client.usertheme`.
+**Every command without `--apply` is a dry run**: it prints what it would do and changes nothing. With `--apply` it
+first writes a backup (a `mysqldump` of both tables to `/root/`; the dump needs no LOCK TABLES privilege), asks for
+`yes`, and prints the command that restores the backup.
+
+### Switch everybody to Danke
+Run the four steps in this order.
+
+1. **Look** — who is on which theme (read-only):
+   ```bash
+   ./install/set-user-theme.sh --list
+   ```
+2. **Try one user** — then log out and in again as that user and click through the panel:
+   ```bash
+   ./install/set-user-theme.sh --set danke --users admin            # dry run
+   ./install/set-user-theme.sh --set danke --users admin --apply
+   ```
+3. **Everybody** — all users, admins included; each gets the theme at their next login:
+   ```bash
+   ./install/set-user-theme.sh --set danke --all                    # dry run
+   ./install/set-user-theme.sh --set danke --all --apply
+   ```
+4. **The login page** — and the theme of users created from now on:
+   ```bash
+   ./install/set-user-theme.sh --set-default danke                  # dry run: the current and the new line of both config files
+   ./install/set-user-theme.sh --set-default danke --apply
+   ```
+   This changes only the line `$conf['theme'] = '…';` in `interface/lib/config.inc.php` and
+   `server/lib/config.inc.php` (owner and mode kept; backup in `/root/danke-config-backup-<timestamp>/`). A theme
+   that is not installed or not compatible is refused; "already set" means there was nothing to do. ISPConfig's
+   updater keeps the value. Doing the edit by hand: [`INSTALL.md`](INSTALL.md), step 6.
+
+That is all. Do **not** continue into the next two blocks — they are alternatives and the way back, not further steps.
+
+### Other options
+Instead of step 3, when not everybody should get the theme (add `--apply` once the dry run shows what you expect):
 ```bash
-./set-user-theme.sh --list                                   # who is on what; MISMATCH = Edit Client says one theme, the login uses another
-./set-user-theme.sh --sync-from-client                       # dry run: login theme := the client's Design
-./set-user-theme.sh --sync-from-client --apply
-./set-user-theme.sh --set danke --users alice,bob --apply    # or --clients-only, or --all
-./set-user-theme.sh --set default --all --apply              # everybody back to ISPConfig's theme
-./set-user-theme.sh --sync-from-client --set-default danke --apply     # users and the global default in one run
+./install/set-user-theme.sh --set danke --clients-only       # every user that belongs to a client (clients and resellers), not the admins
+./install/set-user-theme.sh --set danke --users alice,bob    # only these user names, as --list shows them
+./install/set-user-theme.sh --sync-from-client               # each client user gets the theme chosen in Client → Edit Client → Design
 ```
+`--sync-from-client` is useful when you used *Edit Client* to choose themes: `--list` marks those users with
+`MISMATCH` (the client form says one theme, the login uses another), and this makes the login follow the form.
+
+### Undo
+Only if you want to go back.
+```bash
+./install/set-user-theme.sh --set default --all --apply      # everybody back to ISPConfig's own theme
+./install/set-user-theme.sh --set-default default --apply    # the login page back to ISPConfig's own theme
+```
+To return to exactly the state before one `--apply` — each user's previous theme — use the restore command the
+helper printed in that run: `mysql <database> < /root/danke-user-theme-backup-<timestamp>.sql` for the users, and
+the `cat … > …` lines it printed for the config files.
+
 Details and exit codes: [`INSTALL.md`](INSTALL.md) → "Switching existing users".
 
 ## Update
-Install the new release the same way (`git pull` in the clone, then `./install/install-theme.sh theme/danke`). The
-previous folder is backed up to `/root/danke-theme-backup-<timestamp>/`, your `local/` folder (brand choice, own
+Install the new release the same way, from the clone:
+```bash
+cd danke-ispconfig-theme          # your clone — give the full path if you are somewhere else
+git pull
+./install/install-theme.sh theme/danke
+```
+The previous folder is backed up to `/root/danke-theme-backup-<timestamp>/`, your `local/` folder (brand choice, own
 logo) is carried over. Every file the theme loads carries the release's version in its address, so a normal reload
 shows the new release — no cache to empty by hand.
-`./install-theme.sh --rollback /root/danke-theme-backup-<timestamp>` goes back.
+`./install/install-theme.sh --rollback /root/danke-theme-backup-<timestamp>` goes back.
 
 ### After updating ISPConfig itself
 An ISPConfig update keeps `themes/danke` and the global default theme. Afterwards check that the login page and the
-panel load (no 404 in the browser's network view), then install the current theme package once more and run
-`./set-user-theme.sh --list`. The full checklist: [`INSTALL.md` → "Updating ISPConfig"](INSTALL.md#updating-ispconfig).
+panel load (no 404 in the browser's network view), then install the current theme once more from the clone and look
+at the users:
+```bash
+cd danke-ispconfig-theme          # your clone — give the full path if you are somewhere else
+git pull
+./install/install-theme.sh theme/danke
+./install/set-user-theme.sh --list
+```
+The full checklist: [`INSTALL.md` → "Updating ISPConfig"](INSTALL.md#updating-ispconfig).
 
 ## Uninstall
 ```bash
-./uninstall-theme.sh --dry-run
-./uninstall-theme.sh
+./install/uninstall-theme.sh --dry-run
+./install/uninstall-theme.sh
 ```
 The folder is backed up, then removed. Users who had chosen `danke` get ISPConfig's `default` theme at their next
 login. If you made `danke` the global default, the script stops and tells you the one line to change first
-(`./set-user-theme.sh --set-default default --apply`, or `./uninstall-theme.sh --reset-default`).
+(`./install/set-user-theme.sh --set-default default --apply`, or `./install/uninstall-theme.sh --reset-default`).
 
 ## FAQ
 **`https://panel.example.com:8080` fails with `SSL_ERROR_RX_RECORD_TOO_LONG` (openssl: "wrong version number").**
@@ -131,7 +178,8 @@ Either set the panel's DNS record to "DNS only", or add an Origin Rule (host nam
 to "Full (strict)" and open `https://panel.example.com` without a port.
 
 **I set Design to `danke` in *Edit Client*, but the client still gets the old theme.** See "Switching existing
-users": that field only counts when the client is created. Use `set-user-theme.sh --sync-from-client`.
+users": that field only counts when the client is created. Use
+`./install/set-user-theme.sh --sync-from-client` (a dry run; add `--apply` to do it).
 
 **I saved *User Settings* and nothing seemed to happen.** A Design change reloads the page; any other successful
 save shows "Saved." at the bottom. Neither → nothing was stored; look for a red message above the form.
@@ -143,14 +191,31 @@ package) the browser tab then reads "Your Company :: ISPConfig" and the footer "
 ISPConfig". The logo stays ISPConfig's: ISPConfig 3.3 has no logo upload in its interface. (A custom logo stored by
 an older ISPConfig version is still shown.)
 
-**B — your own logo, icons and colour.** Your brand lives in the theme's `local/brand/` folder. Start from the
-kit that comes with the theme:
+**B — your own logo, icons and colour.** Your brand lives in the theme's `local/brand/` folder on the panel
+server: `/usr/local/ispconfig/interface/web/themes/danke/local/brand/` (below: `themes/danke/local/brand/`). The installer creates
+`themes/danke/local/` — empty — with the first install. There are two ways to fill it.
+
+*Way 1 — start from the kit that comes with the theme:*
 ```bash
-./install-theme.sh --new-brand                 # copies the starter kit to themes/danke/local/brand/ — applies nothing
-#   edit themes/danke/local/brand/brand.json, replace logo.svg and icon.svg (and logo-dark.svg, icon-rail.svg)
-./install-theme.sh --dry-run --apply-brand     # shows what would be applied
-./install-theme.sh --apply-brand               # applies it (the theme folder is backed up first)
+./install/install-theme.sh --new-brand                 # copies the starter kit to themes/danke/local/brand/ — applies nothing
+#   edit /usr/local/ispconfig/interface/web/themes/danke/local/brand/brand.json,
+#   replace logo.svg and icon.svg there (and logo-dark.svg, icon-rail.svg)
+./install/install-theme.sh --dry-run --apply-brand     # shows what would be applied
+./install/install-theme.sh --apply-brand               # applies it (the theme folder is backed up first)
 ```
+
+*Way 2 — you already have a finished brand folder* (from a designer, or from another server): copy it to
+`themes/danke/local/brand/`, then apply it. No `--new-brand` — the kit's placeholders would only mix with your files.
+```bash
+cp -r my-brand /usr/local/ispconfig/interface/web/themes/danke/local/brand
+#   or, from an archive that holds brand.json, logo.svg … at its top level:
+#   mkdir /usr/local/ispconfig/interface/web/themes/danke/local/brand && tar xzf my-brand.tar.gz -C /usr/local/ispconfig/interface/web/themes/danke/local/brand
+./install/install-theme.sh --dry-run --apply-brand     # shows what would be applied
+./install/install-theme.sh --apply-brand
+```
+If `themes/danke/local/brand` already exists as a one-line **file** (a profile choice such as `neutral`, written by
+`--brand`), move it away first: `mv /usr/local/ispconfig/interface/web/themes/danke/local/brand /root/danke-brand-choice`.
+
 The smallest brand is three files:
 ```
 themes/danke/local/brand/
@@ -164,9 +229,13 @@ every `brand.json` key; so does
 [`INSTALL.md` → "Brand profiles"](INSTALL.md#brand-profiles--logo-name-colour-accent-credit).
 `local/` belongs to your server: updates and rollbacks keep it. `--new-brand` never overwrites an existing brand.
 
+After changing **only the brand**, reload the panel once with **Ctrl+F5**: a changed logo keeps the same address
+until the next theme release, so the browser may still show the old file (the installer prints this reminder).
+
 The small credit line in the footer ("Danke theme · by AIDGeeks"; with your own brand: "Designed by AIDGeeks") can
-be switched off: `"credit": false` in `brand.json`, or `echo off > themes/danke/local/credit`, then
-`./install-theme.sh --apply-brand`. If you like the theme, leaving it on is a nice way to say so.
+be switched off: `"credit": false` in `brand.json`, or
+`echo off > /usr/local/ispconfig/interface/web/themes/danke/local/credit`, then `./install/install-theme.sh --apply-brand`.
+If you like the theme, leaving it on is a nice way to say so.
 "powered by ISPConfig" — in the footer and below the login card, with ISPConfig's own link — is not part of that
 switch: it always stays.
 
@@ -192,11 +261,14 @@ not ask the ISPConfig team for help with it — if the panel misbehaves with Dan
 ## Changelog
 | Version | Date | What |
 |---|---|---|
+| **1.0.1** | 2026-11-20 | README commands work from the clone; "switch everybody" recipe with a separate undo; installer always creates `local/`; finished brand folders documented; Portuguese "com tecnologia ISPConfig"; versions 3.3.1p1 / 3.3.2p1 / 3.3.3p2 confirmed on real panels. |
 | **1.0.0** | 2026-11-19 | First public release (package release r17). Icon rail with module menu, breadcrumb, light / dark mode, dashboards with server status, restyled lists, forms, DNS records, Monitor and login pages; brand profiles with a starter kit for your own brand; installer, uninstaller and the optional helper for the theme of existing users. Tested with ISPConfig 3.3.3p2, 3.3.2p1 and 3.3.1p1. |
 
-The version is also what the theme prints into the address of every file it loads (`?ver=1.0.0-r17`): `r17` is the
-package release the version was built from. `theme/danke/TESTED-VERSIONS.md` lists which ISPConfig versions each
-release was tested with.
+Version: 1.0.1. The theme adds this version to the addresses of its own stylesheets and scripts
+(…/danke.js?ver=1.0.1-r18), so browsers load the new files after an update. You don't need to do anything with it;
+`r18` is the internal build number of the release.
+
+`theme/danke/TESTED-VERSIONS.md` lists which ISPConfig versions each release was tested with.
 
 ## Licence
 MIT — see [`LICENSE`](LICENSE). Parts that come from ISPConfig (BSD 3-Clause) and other projects keep their

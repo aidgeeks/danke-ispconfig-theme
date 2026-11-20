@@ -153,15 +153,18 @@
     }
   };
   // ISPConfig passes no language code to templates; the shell exposes a few strings that
-  // ISPConfig already translated (#dk-lang-probe). These are the Portuguese ("br") values.
-  var PT_MARKERS = ['Sair', 'Pesquisar', 'Fechar', 'Acessar', 'Usuário', 'Esqueceu a senha?', 'Senha'];
+  // ISPConfig already translated (#dk-lang-probe). These are the values of ISPConfig's two Portuguese wordbooks:
+  // "br" (first line) and "pt" (second line — it leaves most of the shell's strings in English, so the panel is
+  // recognised by the delete question and the login page by the user name label).
+  var PT_MARKERS = ['Sair', 'Pesquisar', 'Fechar', 'Acessar', 'Usuário', 'Esqueceu a senha?', 'Senha', 'Você tem certeza que deseja remover este registro?',
+    'Utilizador', 'Tem a certeza que deseja remover este registo?'];
 
   function detectLang() {
     var cfg = (window.DK_CONFIG && window.DK_CONFIG.lang) || 'auto';
     if (cfg === 'en' || cfg === 'pt') return cfg;
     var probe = document.getElementById('dk-lang-probe');
     if (probe) {
-      var vals = [probe.getAttribute('data-a'), probe.getAttribute('data-b'), probe.getAttribute('data-c')];
+      var vals = [probe.getAttribute('data-a'), probe.getAttribute('data-b'), probe.getAttribute('data-c'), probe.getAttribute('data-d')];
       for (var i = 0; i < vals.length; i++) {
         if (vals[i] && PT_MARKERS.indexOf($.trim(vals[i])) !== -1) return 'pt';
       }

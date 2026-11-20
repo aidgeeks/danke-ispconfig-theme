@@ -21,7 +21,7 @@
 #      to /root/danke-theme-backup-<timestamp>/
 #   4. copies the theme to themes/danke (replacing the old copy), owner and mode like themes/default.
 #      The folder themes/danke/local/ (this server's own choices: brand, credit, own logo files) is carried over
-#      from the copy that is replaced — an update never loses it.
+#      from the copy that is replaced — an update never loses it. On a first install it is created empty.
 #   5. applies the brand profile (logo, icons, name, colour accent, credit) to the installed copy:
 #        --brand <id>   use the profile brands/<id>/ of the package and remember it in themes/danke/local/brand
 #        no --brand     keep what themes/danke/local/ says (a profile id in local/brand, or your own brand in the
@@ -316,6 +316,14 @@ replace_theme() {
     say "keeping this server's own settings: $cur/local/ ($(find "$cur/local" -type f | wc -l | tr -d ' ') file(s)) is carried over"
     run rm -rf "$new/local"
     run cp -a "$cur/local" "$new/local"
+  fi
+  # local/ always exists after this step (empty when this server has made no choice yet), so "put your brand into
+  # local/brand/" works right after a first install. An empty local/ changes nothing: the brand stays the default.
+  if [ "$DRY" = 1 ]; then
+    if [ ! -d "$cur/local" ] && [ ! -d "$1/local" ]; then say "(dry-run) create the empty folder $cur/local/ (this server's own brand and choices go there)"; fi
+  elif [ ! -e "$new/local" ] && [ ! -L "$new/local" ]; then
+    mkdir "$new/local"
+    say "created the empty folder $cur/local/ (this server's own brand and choices go there; updates keep it)"
   fi
   if [ "$DRY" = 1 ]; then
     # nothing was copied: show what would be applied, read from the source and the live local/ folder
